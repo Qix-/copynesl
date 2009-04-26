@@ -1,0 +1,28 @@
+2009-04-25  bjorn
+	* cartctl/Makefile.am, 	cartctl/nes.h, 
+	  cartctl/nesutils.c, cartctl/unifutils:
+	  	added warning flags, and made ansi compatible.
+		
+	* cartctl/nes.h, cartctl/nesutils.c, cartctl/unifutils:
+		renaming everything to cart_*
+	* configure.ac, Makefile.am, cartctl/Makefile.am, 
+	  cartctl/nes.h, cartctl/nesutils.c, cartctl/unifutils:
+	  	renamed library
+
+2009-03-13  bjorn
+
+	* AUTHORS, ChangeLog, Makefile.am, README, configure.ac: 
+		autotools setup
+	* nesctl.h: 
+		created external header file, added unif functions
+	* unifutils.c: 
+		added unif support.  Working with NROM only.
+	* nesutils.c: 
+		rewritten, I think a lot clearer.  interface changed slightly.
+
+2009-03-07  bjorn
+
+	* nesutils.c nesutils.h: added nes support.  Two functions
+	  to create a .nes file from prg and chr in memory, and
+	  in file format.
+

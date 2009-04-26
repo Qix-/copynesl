@@ -1,0 +1,20 @@
+                                 Copyrights
+                                 ----------
+
+06/12/06
+KH
+--
+
+
+All .ASM and .BAS files are copyright by me, Kevin Horton, except where  
+noted in the .ASM files.  Included .BIN files of the assembled mappers 
+and CopyNES BIOS are also copyrighted by me, except where noted in the
+source file(s).
+
+You may use these files in any way you see fit except you cannot use them 
+to make a profit.  
+
+Not responsible for any losses actual or implied from the use or misuse
+of this product and its code.  (Especially for Game Action Replays!)
+
+

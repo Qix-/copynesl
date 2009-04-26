@@ -1,0 +1,114 @@
+2009-04-25
+	* settings/settings.c:
+		fixed int setting bug
+	* settings/tests/test_settings.c:
+		updated to test for int setting bug
+	* copynesl/dump_cart.c:
+		implementing dump cart functionality
+		
+
+2009-04-24 Bjorn
+	* cartctl, cartctl/ChangeLog:
+		added cartctl library to main src tree
+	* copynesl/dump_cart.c:
+		implementing dump cart functionality
+
+2009-04-23 Bjorn
+	* configure.ac, Makefile.am, data/Makefile.am, 
+	  data/plugins/Makefile.am:
+		Added ability to install plugins and mapper list.
+	* data, data/mappers.dat, data/copyrght.txt, data/plugins/*.bin:
+		Added plugins and mapper list from original copynes.
+
+2009-04-22 Bjorn
+	* copynesl/copynes.c:
+		Worked on dump_cart function.
+	* settings/tests/test_dir.c:
+		Updated tests
+	* settings/dir.c, settings/settings.h:
+		Changed to lookup in config directories
+
+2009-04-21 Bjorn
+	* settings/settings.c, settings/tests/test_settings.c,
+	  settings/tests/test_dir.c, settings/tests/test_array.c,
+	  settings/copynesl/options.c:
+		removed usage_short from settings
+	* settings/tests/test_arrays.c:
+		created test for array settings
+	* settings/settings.c:
+		implemented array settings
+	* man/copynesl.1:
+		created man page
+	* README:
+		created README
+
+2009-04-20 Bjorn
+	* settings/tests/test_dir.c:
+		created test for dir.c
+	* settings/dir.c, settings/settings.h:
+		implemented some directory finding code
+
+2009-04-19 Bjorn
+	* copynesl/copynes.c, copynesl/copynes.h:
+		implemented --copynes-version
+	* configure.ac:
+		fixed rediculous rpc_malloc bug in autoconf 
+	* configure.ac, copynesl/Makefile.am:
+		Added --with-copynes support to .configure
+
+	* copynesl/copynesl.c, copynesl/plugins.c, copynesl/plugins.h:
+		creating general plan and program stubs
+	* copynesl/options.c, copynesl/options.h:
+		Added in copynesl options prompts
+
+	* trk_log/Makefile.am, trk_log/trk_log.c,
+	  trk_log/trk_log.h, settings/tests/test_settings.c:
+	  	fixing up (renamed) error logging library
+	* error/error_handling.c, error/error_handling.h:
+		simplifying and adding support for turning output
+
+2009-04-18 Bjorn
+	* settings/tests/test_settings.c:
+		restructuring
+	
+	* settings/settings.c, settings/settings.h:
+		testings and fixing command line options
+
+	* error/error_handling.c, error/error_handling.h,
+	  error/Makefile.am:
+	  	restructuring error logging into library
+
+2009-04-17  Bjorn
+	* settings/.tests/settings_tests.c:
+		completed unit tests for loading defaults
+	* settings/settings.c, settings/settings.h:
+		Fixing up settings issues with loading defaults
+	* settins/.tests/settings_tests.c:
+		tweaked unit tests for settings loading defaults
+
+2009-04-16  Bjorn
+
+	* ChangeLog: 
+		started ChangeLog
+	* configure.ac, Makefile.am, copynesl, copynesl/Makefile.am, 
+	  settings, settings/Makefile.am, settings/.tests/Makefile.am, 
+	  autogen.sh: 
+	  	setting up autotools
+	* settings/.tests/settings_tests.c: 
+		created unit testing for settings lib
+	* settings/settings.c, settings/settings.h:
+		create seperate library for settings
+		
+
+2009-04-15  Bjorn
+
+	* copynesl/settings.c, copynesl/settings.h: 
+		working on settings handling.
+
+
+Copyright (C) Bjorn Hedin 2009 <cradelit@gmail.com>
+Copyright (C) David Huseby 2009 <dave@linuxprogrammer.org>
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

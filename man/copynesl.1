@@ -1,0 +1,126 @@
+.\" Process this file with
+.\" groff -man -Tascii copynesl.1
+.\"
+.TH COPYNESL "1" "April 2009" "Unix" "User Manuals"
+.SH NAME
+copynesl \- Portable software for the CopyNES
+.SH SYNOPSIS
+.B copynesl 
+.I COMMAND
+[\fIOPTIONS\fR]... [\fIINPUT-FILES\fR]...
+.SH DESCRIPTION
+.PP
+\fBcopynesl\fR interfaces with the CopyNES and provides tools
+related to CopyNES operation and manipulation of NES ROM files.
+.PP
+The CopyNES is a tool for dumping and analyzing NES game 
+cartridges. It can also be used as a development tool for 
+testing software on the NES.
+.PP
+Functionality requiring direct interfacing with the CopyNES 
+requires the libcopynes library.
+.PP
+Command line arguments are seperated into commands and options.  
+\fBcopynesl\fR accepts 1 command and each command accepts multiple
+arguments.
+.SH COMMANDS
+.TP 
+\fB\-d\fR  \fB\-\-dump\-cart=\fR\fIplugin\fR
+Requires libcopynes.  Requires \fB--output-file\fR or 
+\fB--output-format\fR to be set.  Use \fIplugin\fR to connect to 
+the CopyNES and pull the ROM data from the currently running 
+cartridge. 
+.TP 
+\fB\-p\fR \fB\-\-play\-mode\fR
+Requires libcopynes.  Put the copynes into playmode.
+Playmode is used for playing nes cartridges directly
+on the CopyNES.
+.TP
+\fB\-n\fR \fB\-\-copynes\-version\fR
+Requires libcopynes.  Print out the CopyNES version 
+and bios version of the CopyNES.
+.IP "-l --list-plugins"
+Print out a detailed listing of available plugins
+to stdout.  This is useful for helping to determine
+what plugins and mappers to use for cartridge dumping.
+.IP "-t --convert"
+Convert the given input files to the provide output
+format.  Requires at least 1 \fB--input-file\fR option and either 
+\fB--output-file\fR or \fB--output-format\fR to be set.
+.SH OPTIONS
+.TP
+\fB\-m\fR  \fB\-\-mapper=\fR\fImappernumber\fR
+Specify the mapper number to use in output ROMS.
+.IP "-i --input-file=file"
+Specify a file to be used as input.  Extensions are 
+used to determine file format, so only specific 
+extensions are accepted.
+.IP "-o --output-file=file"
+Specify a file to be used as output.  Extensions are
+used to determine file format, so only specific 
+extensions are accepted.
+.IP "-f --output-format=formatstring"
+Specify the output format.  Possible format strings
+are: 
+.B pgr 
+.B chr 
+.B wram 
+.B nes 
+.B unif
+.IP "-D --data-port=device"
+Default: /dev/ttyUSB0
+
+Specify the serial device to use for the CopyNES 
+data port.
+.IP "-C --config-port=device"
+Default: /dev/ttyUSB1
+
+Specify the serial device to use for the CopyNES 
+configuration port.
+.SH INPUT AND OUTPUT OPTIONS
+Commands requiring input must provide one or more
+input files.  Input files can be specified either
+using
+.BI "--input-file" " file"
+or by any non option command arguments. 
+
+Commands requiring output options follow
+the following structure.
+If one or more output files are
+specified, output will be put into those files.  The 
+format of the output in that case will be based on the
+extension of the output file.  If there are no output 
+files specified, the output will be dumped to stdout.
+The 
+.B --output-format
+option must be specified in this case and
+only one file type can be output this way.
+
+Valid extentions for input and output files are:
+ .pgr
+ .chr
+ [.wram | .wrm]
+ .nes
+ [.unif | .unf]
+
+Case is ignored in extensions.
+.SH FILES
+.I /usr/local/etc/copynesl/config
+.RS
+The system wide configuration file. See
+.BR copynesl (5)
+for further details.
+.RE
+.I ~/.copynesl/config
+.RS
+Per user configuration file. See
+.BR copynesl (5)
+for further details.
+.SH ENVIRONMENT
+.IP COPYNES_PLUGINS
+If non-null the full directory path containing the
+CopyNES Plugins.
+.SH AUTHOR
+Bjorn Hedin <cradelit@gmail.com>
+.SH "SEE ALSO"
+.BR copynesl (5)

@@ -1,0 +1,23 @@
+libcartctl version 0.02
+
+libcartctl is a library intended to manipulate nes file formats related 
+to emulation.
+
+This library was created with the intent of supporting catridge dumping 
+from the CopyNES device.  It's original intent it to facilitate turning
+raw cartridge ROM dumps into .nes and .unif format files usable by 
+current nes emulators.
+
+It may also be expanded to other related functionality, such as 
+converting between file formats.
+
+This library was created to support development of software for the 
+CopyNES on new platforms and is designed to work well with the CopyNES.
+
+A sample demonstrating usage can be found in the sample directory.
+
+Send feature requests, bug reports, and patches to cradelit@gmail.com.
+
+Have fun.
+
+Bjorn

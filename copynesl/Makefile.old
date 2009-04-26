@@ -1,0 +1,2 @@
+copynesl: copynesl.c settings.o
+settings.o: settings.c settings.h
