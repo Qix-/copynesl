@@ -3,14 +3,14 @@ plugins.o plugins.o: plugins.c ../config.h /usr/include/string.h \
   /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
   /usr/include/gnu/stubs-32.h \
   /usr/lib/gcc/i686-pc-linux-gnu/4.1.2/include/stddef.h \
-  /usr/include/ctype.h /usr/include/bits/types.h \
-  /usr/include/bits/typesizes.h /usr/include/endian.h \
-  /usr/include/bits/endian.h /usr/include/stdlib.h /usr/include/stdint.h \
-  /usr/include/bits/wchar.h ../settings/settings.h /usr/include/stdio.h \
-  /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
+  /usr/include/stdio.h /usr/include/bits/types.h \
+  /usr/include/bits/typesizes.h /usr/include/libio.h \
+  /usr/include/_G_config.h /usr/include/wchar.h /usr/include/bits/wchar.h \
   /usr/include/gconv.h \
   /usr/lib/gcc/i686-pc-linux-gnu/4.1.2/include/stdarg.h \
   /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+  /usr/include/ctype.h /usr/include/endian.h /usr/include/bits/endian.h \
+  /usr/include/stdlib.h /usr/include/stdint.h ../settings/settings.h \
   ../trk_log/trk_log.h errorcodes.h
 
 ../config.h:
@@ -29,11 +29,29 @@ plugins.o plugins.o: plugins.c ../config.h /usr/include/string.h \
 
 /usr/lib/gcc/i686-pc-linux-gnu/4.1.2/include/stddef.h:
 
-/usr/include/ctype.h:
+/usr/include/stdio.h:
 
 /usr/include/bits/types.h:
 
 /usr/include/bits/typesizes.h:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/wchar.h:
+
+/usr/include/bits/wchar.h:
+
+/usr/include/gconv.h:
+
+/usr/lib/gcc/i686-pc-linux-gnu/4.1.2/include/stdarg.h:
+
+/usr/include/bits/stdio_lim.h:
+
+/usr/include/bits/sys_errlist.h:
+
+/usr/include/ctype.h:
 
 /usr/include/endian.h:
 
@@ -43,25 +61,7 @@ plugins.o plugins.o: plugins.c ../config.h /usr/include/string.h \
 
 /usr/include/stdint.h:
 
-/usr/include/bits/wchar.h:
-
 ../settings/settings.h:
-
-/usr/include/stdio.h:
-
-/usr/include/libio.h:
-
-/usr/include/_G_config.h:
-
-/usr/include/wchar.h:
-
-/usr/include/gconv.h:
-
-/usr/lib/gcc/i686-pc-linux-gnu/4.1.2/include/stdarg.h:
-
-/usr/include/bits/stdio_lim.h:
-
-/usr/include/bits/sys_errlist.h:
 
 ../trk_log/trk_log.h:
 

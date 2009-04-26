@@ -47,8 +47,8 @@ init_options(int argc, char** argv)
 		{ "copynes-version", 0, NULL, 'n', NULL, BOOLEAN_SETTING, NULL, 
 		        "  -v, --copynes-version       Print the copynes and bios version.\n"},
 #endif
-		{ "list-plugins", 0, NULL, 'l', NULL, BOOLEAN_SETTING, NULL, 
-		        "  -l, --list-plugins          List available plugin details.\n"},
+		{ "list-plugins", 2, NULL, 'l', NULL, STRING_SETTING, NULL, 
+		        "  -l, --list-plugins=filter   List available plugin details.\n"},
 		{ "convert", 0, NULL, 't', NULL, BOOLEAN_SETTING, NULL, 
 		        "  -t, --convert               Convert the given input files to the provided\n"
 			"                              output format.  Requires at least 1 --input-file\n"
@@ -137,7 +137,7 @@ get_command(void)
 		cmd = PRINT_VERSION;
 	} else if (get_bool_setting("play-mode")) {
 		cmd = PLAY_MODE;
-	} else if (get_bool_setting("list-plugins")) {
+	} else if (get_string_setting("list-plugins")) {
 		cmd = LIST_PLUGINS;
 	}
 	return cmd;

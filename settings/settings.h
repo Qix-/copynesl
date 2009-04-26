@@ -65,8 +65,10 @@ extern const char* get_string_setting(const char* setting);
 extern int reset_string_setting(const char* setting);
 
 /* check a bunch of directories for test_filename based on setting_val */
-extern FILE* get_program_file(const char* filename, const char* file_opts);
-extern FILE* get_program_file_d(const char* directory, const char* filename, const char* file_opts);
+FILE* get_program_file(const char* filename, const char* file_opts);
+FILE* get_program_file_d(const char* directory, const char* filename, const char* file_opts);
 char* get_program_filepath(const char* filename, enum srcfile_type type);
 char* get_program_filepath_d(const char* directory, const char* filename, enum srcfile_type type);
+long get_filesize(FILE* file);
+
 #endif /* _SETTINGS_H_ */

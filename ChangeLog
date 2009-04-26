@@ -1,6 +1,16 @@
 2009-04-26 Bjorn
+	* man/copynesl.1:
+		updated man
+	* copynesl/plugins.c:
+		implemented --list-plugins=filter functionality
+	* cartctl/nesutils.c:
+		fixed terrible bug with get_filesize
+	* settings/dir.c:
+		added a function to determine filesize
+	* settings/settings.h:
+		removed extern from some functions
 	* copynesl/dumpcart.c, cartctl/nes.h:
-		fixed mmc1 mapper support. requires libcopynes patch.
+		fixed mmc1 mapper support. requires libcopynes patch
 
 2009-04-25 Bjorn
 	* configure.ac, Makefile.am, man/Makefile.am:

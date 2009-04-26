@@ -249,3 +249,28 @@ get_program_filepath_d(const char* directory, const char* filename, enum srcfile
 	free(filepath);
 	return output;
 }
+
+long 
+get_filesize(FILE* f)
+{
+	int errorcode = 0;
+	long size;
+	long original_offset = 0;
+
+	if (f)
+	{
+		original_offset = ftell(f);
+		if (original_offset == -1) return -1;
+
+		errorcode = fseek(f, 0, SEEK_END);
+		if (errorcode < 0) return -1;
+
+		size = ftell(f);
+
+		errorcode = fseek(f, 0, original_offset);
+		if (errorcode < 0) return -1;
+		return size;
+	}
+	return -1;
+}
+

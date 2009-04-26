@@ -36,13 +36,12 @@ static long get_filesize(FILE* file);
 
 
 static long 
-get_filesize(FILE* file)
+get_filesize(FILE* f)
 {
 	int errorcode = 0;
 	long size;
 	long original_offset = 0;
 
-	FILE *f = fopen("filename", "rb");
 	if (f)
 	{
 		original_offset = ftell(f);

@@ -23,6 +23,9 @@ requires the libcopynes library.
 Command line arguments are seperated into commands and options.  
 \fBcopynesl\fR accepts 1 command and each command accepts multiple
 arguments.
+.PP
+The arguments for the long options apply also for the short 
+arguments.
 .SH COMMANDS
 .TP 
 \fB\-d\fR  \fB\-\-dump\-cart=\fR\fIplugin\fR
@@ -39,10 +42,12 @@ on the CopyNES.
 \fB\-n\fR \fB\-\-copynes\-version\fR
 Requires libcopynes.  Print out the CopyNES version 
 and bios version of the CopyNES.
-.IP "-l --list-plugins"
+.IP "-l --list-plugins[=filter]"
 Print out a detailed listing of available plugins
 to stdout.  This is useful for helping to determine
 what plugins and mappers to use for cartridge dumping.
+if filter is given, only show plugins matching
+filter.
 .IP "-t --convert"
 Convert the given input files to the provide output
 format.  Requires at least 1 \fB--input-file\fR option and either 
