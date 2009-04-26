@@ -1,4 +1,6 @@
 2009-04-26 Bjorn
+	* configure.ac:
+		updated to version 0.3.0
 	* man/copynesl.1:
 		updated man
 	* copynesl/plugins.c:
