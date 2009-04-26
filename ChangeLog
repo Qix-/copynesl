@@ -1,4 +1,8 @@
-2009-04-25
+2009-04-26 Bjorn
+	* copynesl/dumpcart.c, cartctl/nes.h:
+		fixed mmc1 mapper support. requires libcopynes patch.
+
+2009-04-25 Bjorn
 	* configure.ac, Makefile.am, man/Makefile.am:
 		added install for man file
 	* settings/settings.c:

@@ -55,12 +55,17 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
 {
     copynes_packet_t packet = 0;
     copynes_packet_t* packets = NULL;
-    struct timeval t = { 2L, 0L };
+    struct timeval t = { 5L, 0L };
+ 
     const char* clear_plugin = get_string_setting("clear-plugin");
     const char* dump_plugin = get_string_setting("dump-plugin");
-    uint8_t mirroring = 0;
+    uint8_t ines_mirroring_mask = 0;
+    uint8_t copynes_mirroring_mask = 0;
+/*    mirroring = 0;
+ */
     int npackets = 0;
     int errorcode = 0;
+
     int i = 0;
 
 	/* first flush the CopyNES */
@@ -77,9 +82,14 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
 	if (errorcode) return errorcode;
 	sleep(3);
 
-	copynes_read(cn, &mirroring, 1, &t);
-	set_setting(INT_SETTING, "mirroring", (void*)(int)mirroring);
-	trk_log(TRK_DEBUG, "Mirroring bit: %x", mirroring);
+	copynes_read(cn, &copynes_mirroring_mask, 1, &t);
+	/* mirroring bit is the same */
+	ines_mirroring_mask |= (copynes_mirroring_mask & 0x01);
+	if (copynes_mirroring_mask & 0x02) {
+		ines_mirroring_mask |= CART_FOUR_SCREEN_VROM;	
+	}
+
+
 
 
     while(1)
@@ -87,7 +97,7 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
         packet = NULL;
 	trk_log(TRK_VERBOSE, "reading packet...");
         /* read in a packet */
-        if((errorcode = copynes_read_packet (cn, &packet)) < 0)
+        if((errorcode = copynes_read_packet (cn, &packet, t)) < 0)
         {
 	    trk_log(TRK_ERROR, "copynes_read_packet returned: %d. copynes error: %s", errorcode, copynes_error_string(cn));
             for(i = 0; i < npackets; i++)
@@ -114,6 +124,8 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
 	    	trk_log(TRK_DEBUG, "CHR %d Kb\n", packet->size / 1024);
                 break;
             case PACKET_WRAM:
+	    	ines_mirroring_mask |= CART_HAS_BATTERY;
+		trk_log(TRK_VERBOSE, "Cart has battery.  ines_mirroring_mask %d CART_HAS_BATTERY %d", ines_mirroring_mask, CART_HAS_BATTERY);
 	    	trk_log(TRK_DEBUG, "SAV %d Kb\n", packet->size / 1024);
                 break;
         }
@@ -127,6 +139,8 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
 		free (packet);
 	}
     }
+    trk_log(TRK_DEBUG, "ines mirroring mask byte: %x", ines_mirroring_mask);
+    set_setting(INT_SETTING, "ines-mirroring-mask", (void*)(int)ines_mirroring_mask);
     trk_log(TRK_DEBUGVERBOSE, "npackets: %d", npackets);
     *opackets = packets;
     *onpackets = npackets;
@@ -150,7 +164,7 @@ long get_data_size(copynes_packet_t* packets, long npackets, int packet_type)
 
 int set_one_file(FILE** oprg, FILE** ochr, FILE** owram, FILE** ones, FILE** ounif, FILE* input, const char* ext, int* omapper)
 {
-	int mapper = 0;
+	int mapper = get_int_setting("mapper");
 	trk_log(TRK_VERBOSE, "ext: %s", ext);
 	if (!strcmp(ext, "prg") || !strcmp(ext, "PRG")) {
 		*oprg = input;
@@ -270,7 +284,7 @@ int do_output(copynes_packet_t* packets, int npackets)
 	int errorcode = 0;
 
 	errorcode = get_dumper_options(&prg_outputfile, &chr_outputfile, &wram_outputfile, &nes_outputfile, &unif_outputfile, &mapper);
-	trk_log(TRK_VERBOSE, "%d %d %d %d %d", prg_outputfile, chr_outputfile, wram_outputfile, nes_outputfile, unif_outputfile);
+	trk_log(TRK_VERBOSE, "%d %d %d %d %d mapper: %d", prg_outputfile, chr_outputfile, wram_outputfile, nes_outputfile, unif_outputfile, mapper);
 
 	if (prg_outputfile || nes_outputfile) {
 		prg_data_size = get_data_size(packets, npackets, PACKET_PRG_ROM);
@@ -322,7 +336,7 @@ int do_output(copynes_packet_t* packets, int npackets)
 	}
 
 	if (nes_outputfile && prg_data_size > 0) {
-		int mirroring = (int)get_int_setting("mirroring");
+		int mirroring = (int)get_int_setting("ines-mirroring-mask");
 		int mapper_no = (int)get_int_setting("mapper");
 		trk_log(TRK_DEBUG, "Outputing nes file. mapper %d, mirroring mask %x", mapper, mirroring);
 		 cart_make_nes(nes_outputfile, prg_data_size, prg_data, chr_data_size, chr_data, (uint8_t) mapper, (uint8_t)mirroring);

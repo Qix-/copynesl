@@ -25,11 +25,11 @@
 
 #define UNIF_REVISION 7
 
-#define HORIZONTAL_MIRRORING 0
-#define VERTICAL_MIRRORING 1
-#define HAS_BATTERY 2
-#define TRAINER 4
-#define FOUR_SCREEN_VROM 8
+#define CART_HORIZONTAL_MIRRORING 0
+#define CART_VERTICAL_MIRRORING 1
+#define CART_HAS_BATTERY 2
+#define CART_TRAINER 4
+#define CART_FOUR_SCREEN_VROM 8
 
 typedef struct cart_unif_chunk_header {
 	char id[4];
