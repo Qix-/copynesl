@@ -21022,7 +21022,7 @@ fi
 done
 
 
-ac_config_files="$ac_config_files Makefile copynesl/Makefile trk_log/Makefile settings/Makefile data/Makefile data/plugins/Makefile"
+ac_config_files="$ac_config_files Makefile copynesl/Makefile trk_log/Makefile settings/Makefile data/Makefile data/plugins/Makefile man/Makefile"
 
 
 
@@ -21664,6 +21664,7 @@ do
     "settings/Makefile") CONFIG_FILES="$CONFIG_FILES settings/Makefile" ;;
     "data/Makefile") CONFIG_FILES="$CONFIG_FILES data/Makefile" ;;
     "data/plugins/Makefile") CONFIG_FILES="$CONFIG_FILES data/plugins/Makefile" ;;
+    "man/Makefile") CONFIG_FILES="$CONFIG_FILES man/Makefile" ;;
 
   *) { { $as_echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 $as_echo "$as_me: error: invalid argument: $ac_config_target" >&2;}

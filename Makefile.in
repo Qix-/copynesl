@@ -181,7 +181,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = cartctl trk_log settings copynesl data
+SUBDIRS = cartctl trk_log settings copynesl data man
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

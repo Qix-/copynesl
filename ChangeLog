@@ -1,4 +1,6 @@
 2009-04-25
+	* configure.ac, Makefile.am, man/Makefile.am:
+		added install for man file
 	* settings/settings.c:
 		fixed int setting bug
 	* settings/tests/test_settings.c:

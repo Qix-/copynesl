@@ -64,7 +64,8 @@ AC_CONFIG_FILES([Makefile
 		 trk_log/Makefile
 		 settings/Makefile
 		 data/Makefile
-		 data/plugins/Makefile])
+		 data/plugins/Makefile
+		 man/Makefile])
 
 AC_CONFIG_SUBDIRS([cartctl])
 
