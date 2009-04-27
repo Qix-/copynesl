@@ -219,6 +219,7 @@ load_commandline(int argc, char** argv, struct settings_init* init, int initlen)
 	char c = 0;
 	int i = 0;
 	int j = 0;
+	int errorcode = 0;
 
 	/* reset to 1 in case there are multiple calls to load_commandline */
 	optind = 1;
@@ -260,6 +261,7 @@ load_commandline(int argc, char** argv, struct settings_init* init, int initlen)
 
 
 	while(c >= 0) {
+		if (errorcode) break;
 #ifdef HAVE_GETOPT_LONG
 		c = getopt_long(argc, argv, sopt, lopt, NULL);
 #else /* !HAVE_GETOPT_LONG */
@@ -272,10 +274,12 @@ load_commandline(int argc, char** argv, struct settings_init* init, int initlen)
 					match = 1;
 					if (c == 'h') {
 						print_usage(stdout, argv[0], init, initlen);
-						return 1;
+						errorcode = 1;
+						break;
 					} else if (c == 'V') {
 						print_version();
-						return 2;
+						errorcode = 2;
+						break;
 					} else {
 						/* depending on the val_type, we have different arg types */
 						if (optarg) {
@@ -284,7 +288,8 @@ load_commandline(int argc, char** argv, struct settings_init* init, int initlen)
 							} else if (init[i].val_type == STRING_SETTING || init[i].val_type == STR_ARRAY_SETTING) {
 								set_setting(init[i].val_type, init[i].long_opt, (void*)optarg);
 							} else {
-								return -1;
+								errorcode = -1;
+								break;
 							}
 						} else {
 							if (init[i].val_type == BOOLEAN_SETTING) {
@@ -294,24 +299,28 @@ load_commandline(int argc, char** argv, struct settings_init* init, int initlen)
 							} else if (init[i].val_type == STRING_SETTING || init[i].val_type == STR_ARRAY_SETTING) {
 								set_setting(init[i].val_type, init[i].long_opt, "");
 							} else {
-								return -1;
+								errorcode = -1;
+								break;
 							}
 						}
 					}
 				}
 			}
+			if (errorcode) break;
 			if (!match) {
 				fprintf(stderr, "Invalid command line argument encountered.\n");
 				print_usage(stderr, argv[0], init, initlen);
-				exit(1);
+				errorcode = -1;
+				break;
 			}
 		}
 	}
+
 	free(sopt);
 #ifdef HAVE_GETOPT_LONG
 	free(lopt);
 #endif
-  	return 0;
+  	return errorcode;
 }
 
 static void 
@@ -394,8 +403,10 @@ settings(enum settings_command cmd, enum settings_type* type, const char* key, v
 		case LIST:
 			settings_list(settings);
 			return 0;
-		case FREE:
-			return settings_free(settings);
+		case FREE:			
+			settings_free(settings);
+			free(settings);
+			return 0;
 	}
 
 	return -1;
@@ -526,6 +537,8 @@ settings_free(struct stored_settings* settings)
     setting_free(tmp);
     free(tmp);
   }
+
+  free(settings);
 
   settings = NULL;
   return 0;

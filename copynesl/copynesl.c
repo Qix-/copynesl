@@ -68,12 +68,12 @@ int main(int argc, char** argv)
 		print_invalid_options(argv[0]); 
 	} else if (errorcode == COPYNES_OFF) {
 		trk_log(TRK_ERROR, "CopyNES is OFF.  This option requires the copynes to be on.");
-		return COPYNES_OFF;
+		errorcode = COPYNES_OFF;
 	}
 	/*}
 	 */
 	free_options();
-	return 0;
+	return errorcode;
 }
 
 

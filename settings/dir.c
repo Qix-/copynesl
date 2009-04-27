@@ -181,12 +181,14 @@ get_program_filepath(const char* filename, enum srcfile_type type)
 		if (output) return output;
 	}
 	if (sysdir) {
-	        testfilelen = strlen(sysdir) + 1 + filename_len;
+	        testfilelen = strlen(sysdir) + 1 + filename_len + 1;
 		testfile = (char*) malloc(testfilelen);
 		sprintf(testfile, "%s%c%s", sysdir, DIR_SEPARATOR_CHAR,filename);
-		trk_log(TRK_VERBOSE, "Checking path: %s", testfile);
+		trk_log(TRK_VERBOSE, "Checking sysdir path: %s", testfile);
 		output = get_filepath(testfile);
+		trk_log(TRK_DEBUGVERBOSE, "Returning sysdir path: %s", output);
 		free(testfile);
+		trk_log(TRK_DEBUGVERBOSE, "Returning path: %s", output);
 		if (output) return output;
 	}	
 	
@@ -201,10 +203,16 @@ get_filepath (const char* test_filename)
 	char* output = NULL;
 
 	trk_log(TRK_DEBUG, "Checking for %s", test_filename);
+	trk_log(TRK_DEBUG, "1");
 	fp = fopen(test_filename, "r");
+ 
+	trk_log(TRK_DEBUG, "2");
 	if (fp) {
+		trk_log(TRK_DEBUG, "3");
 		output = (char*)malloc(strlen(test_filename) + 1);
+		trk_log(TRK_DEBUG, "4");
 		output = strcpy(output, test_filename);
+		trk_log(TRK_DEBUG, "5");
 		trk_log(TRK_VERBOSE, "%s found.", output);
          	fclose(fp);
 		return output;
@@ -234,17 +242,18 @@ get_program_filepath_d(const char* directory, const char* filename, enum srcfile
 	filepath = strcpy(filepath, filename);
 	if (!filepath) return NULL;
 	
-	trk_log(TRK_VERBOSE, "checking for direct path %s", filename);
+	trk_log(TRK_VERBOSE, "checking for direct path %s", filepath);
 	output = get_program_filepath(filepath, type);
 	if (output) {
 		free(filepath);
+		trk_log(TRK_VERBOSE, "returned path %s", output);
 		return output;
 	} 
 	
 	errorcode = sprintf(filepath, "%s%c%s", directory, DIR_SEPARATOR_CHAR, filename);
 	if (errorcode <= 0) return NULL;
 
-	trk_log(TRK_VERBOSE, "checking for direct path %s", filename);
+	trk_log(TRK_VERBOSE, "checking for dir/path %s", filename);
 	output = get_program_filepath(filepath, type);
 	free(filepath);
 	return output;

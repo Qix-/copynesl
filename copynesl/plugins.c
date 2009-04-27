@@ -208,6 +208,7 @@ get_plugin_path(const char* plugin_dir, const char* plugin_setting)
 		return output;
 	} else {
 			output = get_program_filepath_d(plugin_dir, plugin_setting, DATA);
+			trk_log(TRK_DEBUGVERBOSE, "get_plugin_path filepath %s", output);
 			if (!output) {
 				trk_log(TRK_ERROR, "Could not find %s at %s. Ensure plugin-dir and clear-plugin settings are correct.", plugin_setting, plugin_dir);
 				free(output);
