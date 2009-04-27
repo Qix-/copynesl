@@ -1,4 +1,6 @@
 2009-04-26 Bjorn
+	* settings/settings.c, settings/dir.c, copynesl/copynesl.c:
+		fixing some memory problems.
 	* configure.ac:
 		updated to version 0.3.0
 	* man/copynesl.1:
