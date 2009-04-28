@@ -176,6 +176,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 data_DATA = mappers.dat copyrght.txt
+EXTRA_DIST = $(data_DATA)
 SUBDIRS = plugins
 all: all-recursive
 

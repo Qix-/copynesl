@@ -100,16 +100,16 @@ OBJEXT = o
 PACKAGE = copynesl
 PACKAGE_BUGREPORT = cradelit@gmail.com
 PACKAGE_NAME = copynesl
-PACKAGE_STRING = copynesl 0.3.1
+PACKAGE_STRING = copynesl 0.3.5
 PACKAGE_TARNAME = copynesl
-PACKAGE_VERSION = 0.3.1
+PACKAGE_VERSION = 0.3.5
 PATH_SEPARATOR = :
 RANLIB = ranlib
 SED = /bin/sed
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = strip
-VERSION = 0.3.1
+VERSION = 0.3.5
 abs_builddir = /home/crade/svn/copynesl/data/plugins
 abs_srcdir = /home/crade/svn/copynesl/data/plugins
 abs_top_builddir = /home/crade/svn/copynesl
@@ -180,6 +180,7 @@ plugin_DATA = \
 255in1.bin  8259d.bin     cdreams.bin   exrom.bin   hkram.bin     monty.bin     pokeahin.bin  sachen2.bin  superj.bin   usbbios4.bin\
 42in1.bin   95in1.bin     cheetah.bin   exromw.bin  hkrom.bin     nam109.bin    powerj.bin    sachen3.bin  sxram.bin    uxram.bin
 
+EXTRA_DIST = $(plugin_DATA)
 all: all-am
 
 .SUFFIXES:

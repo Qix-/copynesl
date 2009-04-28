@@ -15,6 +15,7 @@
 
 
 
+
 pkgdatadir = $(datadir)/copynesl
 pkglibdir = $(libdir)/copynesl
 pkgincludedir = $(includedir)/copynesl
@@ -35,7 +36,8 @@ host_triplet = i686-pc-linux-gnu
 check_PROGRAMS = test_settings$(EXEEXT) test_dir$(EXEEXT) \
 	test_array$(EXEEXT)
 subdir = settings
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(noinst_HEADERS) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -75,6 +77,7 @@ SOURCES = $(libsettings_a_SOURCES) $(test_array_SOURCES) \
 	$(test_dir_SOURCES) $(test_settings_SOURCES)
 DIST_SOURCES = $(libsettings_a_SOURCES) $(test_array_SOURCES) \
 	$(test_dir_SOURCES) $(test_settings_SOURCES)
+HEADERS = $(noinst_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -125,16 +128,16 @@ OBJEXT = o
 PACKAGE = copynesl
 PACKAGE_BUGREPORT = cradelit@gmail.com
 PACKAGE_NAME = copynesl
-PACKAGE_STRING = copynesl 0.3.1
+PACKAGE_STRING = copynesl 0.3.5
 PACKAGE_TARNAME = copynesl
-PACKAGE_VERSION = 0.3.1
+PACKAGE_VERSION = 0.3.5
 PATH_SEPARATOR = :
 RANLIB = ranlib
 SED = /bin/sed
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = strip
-VERSION = 0.3.1
+VERSION = 0.3.5
 abs_builddir = /home/crade/svn/copynesl/settings
 abs_srcdir = /home/crade/svn/copynesl/settings
 abs_top_builddir = /home/crade/svn/copynesl
@@ -191,6 +194,7 @@ top_srcdir = ..
 AM_CFLAGS = -g -Wall -pedantic -W -Wno-unused -ansi -DSYSCONFDIR=\"${prefix}/etc\"
 noinst_LIBRARIES = libsettings.a
 libsettings_a_SOURCES = settings.h settings.c dir.c array.c
+noinst_HEADERS = dir.h array.h
 TESTS = $(check_PROGRAMS)
 test_settings_SOURCES = tests/test_settings.c
 test_dir_SOURCES = tests/test_dir.c
@@ -501,7 +505,7 @@ check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
 check: check-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LIBRARIES) $(HEADERS)
 installdirs:
 install: install-am
 install-exec: install-exec-am

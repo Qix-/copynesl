@@ -2,6 +2,7 @@ AM_CFLAGS=-g -Wall -pedantic -W -Wno-unused -ansi -DSYSCONFDIR=\"@sysconfdir@\"
 
 noinst_LIBRARIES=libsettings.a
 libsettings_a_SOURCES=settings.h settings.c dir.c array.c
+noinst_HEADERS=dir.h array.h
 check_PROGRAMS=test_settings test_dir test_array
 TESTS=$(check_PROGRAMS)
 test_settings_SOURCES=tests/test_settings.c

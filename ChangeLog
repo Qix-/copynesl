@@ -1,3 +1,10 @@
+2009-04-27 Bjorn
+	* configure.ac: 
+		updated to version 0.3.5
+	* settings/Makefile.am, copynesl/Makefile.am, data/Makefile.am,
+	  data/plugins/Makefile.am, man/Makefile.am:
+	  	fixed dist to include all necessary files
+
 2009-04-26 Bjorn
 	* settings/settings.c, settings/dir.c, copynesl/copynesl.c:
 		fixing some memory problems.

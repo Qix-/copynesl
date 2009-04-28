@@ -112,16 +112,16 @@ OBJEXT = o
 PACKAGE = copynesl
 PACKAGE_BUGREPORT = cradelit@gmail.com
 PACKAGE_NAME = copynesl
-PACKAGE_STRING = copynesl 0.3.1
+PACKAGE_STRING = copynesl 0.3.5
 PACKAGE_TARNAME = copynesl
-PACKAGE_VERSION = 0.3.1
+PACKAGE_VERSION = 0.3.5
 PATH_SEPARATOR = :
 RANLIB = ranlib
 SED = /bin/sed
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = strip
-VERSION = 0.3.1
+VERSION = 0.3.5
 abs_builddir = /home/crade/svn/copynesl/data
 abs_srcdir = /home/crade/svn/copynesl/data
 abs_top_builddir = /home/crade/svn/copynesl
@@ -176,6 +176,7 @@ top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
 data_DATA = mappers.dat copyrght.txt
+EXTRA_DIST = $(data_DATA)
 SUBDIRS = plugins
 all: all-recursive
 

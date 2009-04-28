@@ -14,4 +14,4 @@ plugin_DATA=\
 210in1.bin  8259c.bin     camerica.bin  exram.bin   hik4in1b.bin  mmc5plug.bin  pir8smb3.bin  regtest.bin  sunsft4.bin  uorom.bin\
 255in1.bin  8259d.bin     cdreams.bin   exrom.bin   hkram.bin     monty.bin     pokeahin.bin  sachen2.bin  superj.bin   usbbios4.bin\
 42in1.bin   95in1.bin     cheetah.bin   exromw.bin  hkrom.bin     nam109.bin    powerj.bin    sachen3.bin  sxram.bin    uxram.bin
-
+EXTRA_DIST=$(plugin_DATA)
