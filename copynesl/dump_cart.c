@@ -395,6 +395,7 @@ int dump_cart(void)
 	}
 	trk_log(TRK_DEBUG, "Found %s", clplugin_path);
 	set_setting(STRING_SETTING, "clear-plugin", clplugin_path);
+	free(clplugin_path);
 
 	trk_log(TRK_VERBOSE, "Looking for %s", requested_plugin);
 	/* we need at least a plugin setting and either output format or output file settings. */
@@ -406,14 +407,15 @@ int dump_cart(void)
 	}
 	trk_log(TRK_DEBUG, "Found %s", plugin_path);
 	set_setting(STRING_SETTING, "dump-plugin", plugin_path);
+	free(plugin_path);
 	
 
 	cn = copynes_new();
 	errorcode = copynes_up(cn);
 	if (errorcode) return errorcode;
 
-/* read in the packets */
-   do_input(cn, &packets, &npackets);
+    /* read in the packets */
+       do_input(cn, &packets, &npackets);
     
     /* reading from copynes complete. */
 	do_output(packets, npackets);

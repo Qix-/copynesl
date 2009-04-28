@@ -405,7 +405,6 @@ settings(enum settings_command cmd, enum settings_type* type, const char* key, v
 			return 0;
 		case FREE:			
 			settings_free(settings);
-			free(settings);
 			return 0;
 	}
 
@@ -471,8 +470,12 @@ settings_set(struct stored_settings** settings, enum settings_type type, const c
 	trk_log(TRK_DEBUGVERBOSE, "setting int setting %d", value);
   	cur->value = value;
   } else if (type == STRING_SETTING) {
-  	cur->value = (char*)malloc(strlen( (const char*) value) + 1);
-	strcpy((char*)cur->value, (const char*)value);
+	if (cur->value) { 
+		free((char*)cur->value);
+		cur->value = NULL;
+	}
+	cur->value = (char*)malloc(strlen( (const char*) value) + 1);
+	cur->value = strcpy((char*)cur->value, (const char*)value);
   } else if (type == STR_ARRAY_SETTING) {
   	errorcode = add_to_array((struct val_array**)&cur->value, (const char*)value); 
   } else { 
@@ -538,7 +541,8 @@ settings_free(struct stored_settings* settings)
     free(tmp);
   }
 
-  free(settings);
+  /*free(settings);
+   */
 
   settings = NULL;
   return 0;

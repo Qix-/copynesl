@@ -25,8 +25,8 @@
 
 enum commands {NONE = 0, DUMP_CART, PRINT_VERSION, PLAY_MODE, LIST_PLUGINS };
 
-void init_options(int argc, char** argv);
-void print_invalid_options(char* program_name);
+int init_options(int argc, char** argv);
+int print_invalid_options(char* program_name);
 void free_options(void);
 enum commands get_command(void);
 

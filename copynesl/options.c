@@ -31,7 +31,7 @@
 #include "options.h"
 #include "errorcodes.h"
 
-void 
+int  
 init_options(int argc, char** argv)
 {
 	int option_index = 0;
@@ -95,8 +95,7 @@ init_options(int argc, char** argv)
 	};
 
 	errorcode = load_settings(argc, argv, long_options);
-	if (errorcode < 0) exit(1);
-	if (errorcode > 0) exit(0);
+	if (errorcode != 0) return errorcode;
 
 	if (get_bool_setting("verbose")) {
 		trk_set_tracelevel(TRK_VERBOSE);
@@ -111,14 +110,14 @@ init_options(int argc, char** argv)
 	return;
 }
 
-void 
+int  
 print_invalid_options(char* program_name)
 {
 	int usage_argc=2;
 	char* usage_argv[2];
 	usage_argv[0] = program_name;
 	usage_argv[1] = "-0"; /* invalid option */
-	init_options(usage_argc, usage_argv);
+	return init_options(usage_argc, usage_argv);
 }
 
 void free_options(void)

@@ -45,8 +45,8 @@ contains(const char* haystack, const char* needle)
 	long needle_len = 0;
 	long i = 0;
 
-	haystack_len = strlen(haystack + 1);
-	haystack_lower = (char*)malloc(haystack_len);
+	haystack_len = strlen(haystack);
+	haystack_lower = (char*)malloc(haystack_len + 1);
 	for (i = 0; i < haystack_len; i++) haystack_lower[i] = tolower(haystack[i]);
 	haystack_lower[haystack_len] = '\0';
 
@@ -108,14 +108,15 @@ list_plugins(void)
 
 	/* open mappers.dat */
 	mappers_dat = fopen(mappers_dat_path, "r");
+	free(mappers_dat_path);
 	mappers_dat_size = get_filesize(mappers_dat);
 	if (mappers_dat_size < 0) {
 		trk_log(TRK_ERROR, "invalid mappers.dat file! size returned: %d", mappers_dat_size);
 	}
 	trk_log(TRK_DEBUGVERBOSE, "mappers.dat filesize: %d", mappers_dat_size);
 
-	buffer = (char*)malloc(mappers_dat_size); /* ensure no overflow by using file size */
-	readcount = fread(buffer, mappers_dat_size, sizeof(char*), mappers_dat);
+	buffer = (char*)malloc(mappers_dat_size * sizeof(char*) + 1); /* ensure no overflow by using file size */
+	readcount = fread(buffer, sizeof(char*), mappers_dat_size, mappers_dat);
 	for (i = 0; i < mappers_dat_size; i++) { 
 		/* seperate into strings by line */
 		if (buffer[i] == '\n') { 
@@ -163,6 +164,7 @@ list_plugins(void)
 		}
 	}
 	if (outline) free(outline);
+	free(lines);
 	free(buffer);
 	/* discart data until the first header. */
 

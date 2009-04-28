@@ -87,7 +87,7 @@ FILE* get_program_file(const char* filename, const char* file_opts)
      	
 	if (userconfdir) {
 	        testfilelen = strlen(userconfdir) + 1 + filename_len;
-		testfile = (char*) malloc(testfilelen);
+		testfile = (char*) malloc(testfilelen + 1);
 		sprintf(testfile, "%s%c%s", userconfdir, DIR_SEPARATOR_CHAR,filename);
 		output = get_file(testfile, file_opts);
 		free(testfile);
@@ -95,7 +95,7 @@ FILE* get_program_file(const char* filename, const char* file_opts)
 	}
 	if (sysconfdir) {
 	        testfilelen = strlen(sysconfdir) + 1 + filename_len;
-		testfile = (char*) malloc(testfilelen);
+		testfile = (char*) malloc(testfilelen + 1);
 		sprintf(testfile, "%s%c%s", sysconfdir, DIR_SEPARATOR_CHAR,filename);
 		output = get_file(testfile, file_opts);
 		free(testfile);
@@ -173,7 +173,7 @@ get_program_filepath(const char* filename, enum srcfile_type type)
 	     	
 	if (userdir) {
 	        testfilelen = strlen(userdir) + 1 + filename_len;
-		testfile = (char*) malloc(testfilelen);
+		testfile = (char*) malloc(testfilelen + 1);
 		sprintf(testfile, "%s%c%s", userdir, DIR_SEPARATOR_CHAR,filename);
 		trk_log(TRK_VERBOSE, "Checking path: %s", testfile);
 		output = get_filepath(testfile);
@@ -181,8 +181,8 @@ get_program_filepath(const char* filename, enum srcfile_type type)
 		if (output) return output;
 	}
 	if (sysdir) {
-	        testfilelen = strlen(sysdir) + 1 + filename_len + 1;
-		testfile = (char*) malloc(testfilelen);
+	        testfilelen = strlen(sysdir) + 1 + filename_len;
+		testfile = (char*) malloc(testfilelen + 1);
 		sprintf(testfile, "%s%c%s", sysdir, DIR_SEPARATOR_CHAR,filename);
 		trk_log(TRK_VERBOSE, "Checking sysdir path: %s", testfile);
 		output = get_filepath(testfile);
@@ -237,7 +237,7 @@ get_program_filepath_d(const char* directory, const char* filename, enum srcfile
 		dirlen = strlen(directory) + 1;
 	}
 
-	filepath = (char*)malloc(dirlen + strlen(filename) + 1);
+	filepath = (char*)malloc(dirlen + strlen(filename) + 2);
 	if (!filepath) return NULL;
 	filepath = strcpy(filepath, filename);
 	if (!filepath) return NULL;

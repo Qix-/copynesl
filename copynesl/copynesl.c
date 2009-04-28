@@ -40,38 +40,40 @@ int main(int argc, char** argv)
 {
 	int errorcode = 0;
 	enum commands cmd = 0;
-	init_options(argc, argv);
-	trk_set_program_name(argv[0]);
+	errorcode = init_options(argc, argv);
+	if (!errorcode) {
+		trk_set_program_name(argv[0]);
 	
-	cmd = get_command();
-	switch(cmd) {
+		cmd = get_command();
+		switch(cmd) {
 #if HAVE_LIBCOPYNES
-		case DUMP_CART:
-			errorcode = dump_cart();
-			break;
-		case PRINT_VERSION:
-			errorcode = print_version();
-			break;
-		case PLAY_MODE:
-			errorcode = enter_playmode();
-			if (!errorcode) printf("Playmode successfully entered.\n");
-			break;
+			case DUMP_CART:
+				errorcode = dump_cart();
+				break;
+			case PRINT_VERSION:
+				errorcode = print_version();
+				break;
+			case PLAY_MODE:
+				errorcode = enter_playmode();
+				if (!errorcode) printf("Playmode successfully entered.\n");
+				break;
 #endif
-		case LIST_PLUGINS:
-			errorcode = list_plugins();
-			break;
-		default:
-			errorcode = INVALID_OPTIONS;
-			break;
-	}
-	if (errorcode == INVALID_OPTIONS) {
-		print_invalid_options(argv[0]); 
-	} else if (errorcode == COPYNES_OFF) {
-		trk_log(TRK_ERROR, "CopyNES is OFF.  This option requires the copynes to be on.");
-		errorcode = COPYNES_OFF;
-	}
+			case LIST_PLUGINS:
+				errorcode = list_plugins();
+				break;
+			default:
+				errorcode = INVALID_OPTIONS;
+				break;
+		}
+		if (errorcode == INVALID_OPTIONS) {
+			print_invalid_options(argv[0]); 
+		} else if (errorcode == COPYNES_OFF) {
+			trk_log(TRK_ERROR, "CopyNES is OFF.  This option requires the copynes to be on.");
+			errorcode = COPYNES_OFF;
+		}
 	/*}
 	 */
+	}
 	free_options();
 	return errorcode;
 }
