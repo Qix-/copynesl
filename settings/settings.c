@@ -247,13 +247,17 @@ load_commandline(int argc, char** argv, struct settings_init* init, int initlen)
 	sopt[j] = '\0';
 	trk_log(TRK_DEBUG, "parsing command line arguments. Short options string used: %s", sopt);
 #ifdef HAVE_GETOPT_LONG
-		lopt = (struct option*)malloc(initlen * sizeof (struct option));
+		lopt = (struct option*)malloc((initlen + 1) * sizeof (struct option));
 		for (i = 0; i < initlen; i++) {
 			lopt[i].name = init[i].long_opt;
 			lopt[i].has_arg = init[i].has_arg;
 			lopt[i].flag = NULL;
 			lopt[i].val = init[i].short_opt; 
 		}
+		lopt[i].name = 0;
+		lopt[i].has_arg=0;
+		lopt[i].flag = 0;
+		lopt[i].val = 0;
 #endif
 
   /* TODO when we have a gui interface, set option ui to appropriately. 
@@ -421,29 +425,41 @@ settings_init(struct stored_settings** settings, const char* key)
 	if (!(*settings)) {
 	    *settings = (struct stored_settings*)malloc(sizeof(struct stored_settings));
 	    cur = *settings;
+    	    cur->next = NULL;
+	    cur->long_opt = NULL;
+	    cur->value = NULL;
+  	    cur->type = 0;
 	} else if (key) { 
 	    cur = *settings;
-	    while (cur->next && strcmp(cur->long_opt, key)) cur = cur->next;
-	    if (!strcmp(cur->long_opt, key)) {
-		return cur;
-	    } else {
+	    while (cur->next && cur->long_opt && strcmp(cur->long_opt, key)) { 
+	    	cur = cur->next;
+	    } 
+	    if (strcmp(cur->long_opt, key)) {
 		cur->next = (struct stored_settings*)malloc(sizeof(struct stored_settings));
 		cur = cur->next;
+		cur->value = NULL;
+    		cur->next = NULL;
+		cur->long_opt = NULL;
+		cur->type = 0;
 	    }
+	    
 	}
 	if(cur == NULL) { /* malloc failed */
 	    	return NULL;
 	}
-	cur->type = 0;
 	if (key) {
+		if (cur->long_opt) {
+			if (cur->type == STR_ARRAY_SETTING) return cur; 
+			setting_free(cur);
+		}
 		cur->long_opt = (char*)malloc(strlen(key) + 1);
 		if(cur->long_opt == NULL) return NULL;
 		strcpy(cur->long_opt, key);
 	} else {
 		cur->long_opt = NULL;
 	}
+	cur->type = 0;
 	cur->value = NULL;
-    	cur->next = NULL;
 
 	/* cur will now point either to the found setting, or to a new setting,
 	 * properly initialized.
@@ -463,19 +479,21 @@ settings_set(struct stored_settings** settings, enum settings_type type, const c
   if(!cur || (cur->type && cur->type != type)) { /* invalid type */
     return -1;
   }
-
+  
   cur->type = type;
 
   if (type == BOOLEAN_SETTING || type == INT_SETTING) {
 	trk_log(TRK_DEBUGVERBOSE, "setting int setting %d", value);
   	cur->value = value;
   } else if (type == STRING_SETTING) {
-	if (cur->value) { 
+/*	if (cur->value) { 
 		free((char*)cur->value);
 		cur->value = NULL;
 	}
+*/
 	cur->value = (char*)malloc(strlen( (const char*) value) + 1);
 	cur->value = strcpy((char*)cur->value, (const char*)value);
+
   } else if (type == STR_ARRAY_SETTING) {
   	errorcode = add_to_array((struct val_array**)&cur->value, (const char*)value); 
   } else { 
@@ -539,6 +557,7 @@ settings_free(struct stored_settings* settings)
     cur = tmp->next;
     setting_free(tmp);
     free(tmp);
+    tmp = NULL;
   }
 
   /*free(settings);
@@ -556,7 +575,7 @@ setting_free(struct stored_settings* setting)
   } else if (setting->type == STR_ARRAY_SETTING && setting->value) {
   	free_array(setting->value);
   }
-  if(setting->long_opt) free(setting->long_opt);
+ if(setting->long_opt) free(setting->long_opt);
   setting->long_opt = NULL;
   setting->value = NULL;
 }

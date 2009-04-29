@@ -79,10 +79,14 @@ void
 free_array(struct val_array* array)
 {
 	struct val_array* cur;
+	struct val_array* tmp;
 	cur = array;
 	while (cur) {
-		cur->returned = 0;
-		if (cur->value) free(cur->value);
-		cur = cur->next;
+		tmp = cur;
+		cur = tmp->next;
+		tmp->returned = 0;
+		if (tmp->value) free(tmp->value);
+		free(tmp);
+	 
 	}
 }

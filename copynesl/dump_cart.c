@@ -401,7 +401,7 @@ int dump_cart(void)
 	/* we need at least a plugin setting and either output format or output file settings. */
 	plugin_path = get_plugin_path(plugin_dir, requested_plugin);
 	if (errorcode || !plugin_path) {
-		trk_log(TRK_ERROR, "Could not find %s at %s. Ensure plugin-dir and clear-plugin settings are correct.", clear_plugin, plugin_dir);
+		trk_log(TRK_ERROR, "Could not find %s at %s. Ensure plugin-dir and clear-plugin settings are correct.", get_string_setting("clear_plugin"), plugin_dir);
 		free(plugin_path);
 		return INVALID_OPTIONS;
 	}

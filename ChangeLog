@@ -1,4 +1,13 @@
 2009-04-27 Bjorn
+	* configure.ac:
+		Updated version to 0.3.6
+	* copnesl/dump_cart.c, settings/settings.c, settings/array.c:
+		Memory fixes (valgrind now aok)
+
+2009-04-27 Bjorn
+	* copynesl/dump_cart.c, copynesl/copynesl.c, copynesl/options.c,
+	  settings/settings.c, settings/dir.c:
+	  	memory fixes from valgrind testing
 	* configure.ac: 
 		updated to version 0.3.5
 	* settings/Makefile.am, copynesl/Makefile.am, data/Makefile.am,
