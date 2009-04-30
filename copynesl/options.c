@@ -107,7 +107,7 @@ init_options(int argc, char** argv)
 			trk_set_tracelevel(TRK_DEBUG);
 		}
 	}
-	return;
+	return 0;
 }
 
 int  
