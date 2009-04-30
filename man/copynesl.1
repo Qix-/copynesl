@@ -55,7 +55,12 @@ format.  Requires at least 1 \fB--input-file\fR option and either
 .SH OPTIONS
 .TP
 \fB\-m\fR  \fB\-\-mapper=\fR\fImappernumber\fR
-Specify the mapper number to use in output ROMS.
+Specify the mapper number to use in output ROMS. Required
+for .nes format output.
+.TP
+\fB\-b\fR  \fB\-\-boardname=\fR\fIboardname\fR
+Specify the board name used in unif file format.  Almost
+always required for .unif format output.
 .IP "-i --input-file=file"
 Specify a file to be used as input.  Extensions are 
 used to determine file format, so only specific 
