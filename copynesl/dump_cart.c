@@ -41,6 +41,8 @@
 
 #define MAX_OUTPUT_FORMATS 5
 
+struct cart_unif_data* add_unif_opts(struct cart_unif_data* unif_chunks);
+
 int required_for_output(int packet_type)
 {
 	char* output_format = NULL;
@@ -105,6 +107,7 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
                 free(packets[i]);
             }
             free(packets);
+	    if (packet) free (packet);
             copynes_reset (cn, RESET_COPYMODE);
             return -1;
         }
@@ -112,6 +115,7 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
         
         if(packet->type == PACKET_EOD) {
 	    trk_log(TRK_DEBUG, "PACKET_EOD read");
+	    free (packet);
             break;
 	}
         
@@ -132,7 +136,7 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
         
 	if (required_for_output(packet->type)) {
 	        /* append the packet to the packet list */
-        	packets = realloc(packets, npackets + 1);
+        	packets = realloc(packets, (npackets + 1) * sizeof(*packet));
 	        packets[npackets] = packet;
         	npackets++;
 	} else {
@@ -260,12 +264,6 @@ uint8_t* dump_data(copynes_packet_t* packets, int npackets, int type, long size)
 	return start;
 }
 
-int output_unif(FILE* ounif, copynes_packet_t* packets)
-{
-	trk_log(TRK_ERROR, "output_unif not implemented yet. ");
-	return -1;
-}
-
 int do_output(copynes_packet_t* packets, int npackets)
 {
 	uint8_t* prg_data = NULL;
@@ -282,11 +280,15 @@ int do_output(copynes_packet_t* packets, int npackets)
 	long chr_data_size = 0;
 	long wram_data_size = 0;
 	int errorcode = 0;
+	struct cart_unif_data* unif_chunks = NULL;
 
 	errorcode = get_dumper_options(&prg_outputfile, &chr_outputfile, &wram_outputfile, &nes_outputfile, &unif_outputfile, &mapper);
 	trk_log(TRK_VERBOSE, "%d %d %d %d %d mapper: %d", prg_outputfile, chr_outputfile, wram_outputfile, nes_outputfile, unif_outputfile, mapper);
 
-	if (prg_outputfile || nes_outputfile) {
+	if (unif_outputfile) {
+		unif_chunks = add_unif_opts(unif_chunks);
+	}
+	if (prg_outputfile || nes_outputfile || unif_outputfile) {
 		prg_data_size = get_data_size(packets, npackets, PACKET_PRG_ROM);
 		if (prg_data_size > 0) {
 			prg_data = dump_data(packets, npackets, PACKET_PRG_ROM, prg_data_size);
@@ -300,10 +302,15 @@ int do_output(copynes_packet_t* packets, int npackets)
 				fclose(prg_outputfile);
 				trk_log(TRK_DEBUGVERBOSE, "done");
 			}
+			if (unif_outputfile) {
+				static int prg_chipcount = 0;
+				trk_log(TRK_VERBOSE, "Creating %d k PRG data unif chunk", prg_data_size / 1000);
+				unif_chunks = cart_unif_add_prg_chunk(unif_chunks, prg_data_size, prg_data, prg_chipcount++);
+			}
 		}
 	}
 
-	if (chr_outputfile || nes_outputfile) {
+	if (chr_outputfile || nes_outputfile || unif_outputfile) {
 		chr_data_size = get_data_size(packets, npackets, PACKET_CHR_ROM);
 		if (chr_data_size > 0) {
 			chr_data = dump_data(packets, npackets, PACKET_CHR_ROM, chr_data_size);
@@ -315,6 +322,11 @@ int do_output(copynes_packet_t* packets, int npackets)
 					clearerr(chr_outputfile);
 				}
 				fclose(chr_outputfile);
+			}
+			if (unif_outputfile) {
+				static int chr_chipcount = 0;
+				trk_log(TRK_VERBOSE, "Creating %d k CHR data unif chunk", chr_data_size / 1000);
+				unif_chunks = cart_unif_add_chr_chunk(unif_chunks, chr_data_size, chr_data, chr_chipcount++);
 			}
 		}
 	}	
@@ -345,7 +357,7 @@ int do_output(copynes_packet_t* packets, int npackets)
 	}
 
 	if (unif_outputfile) {
-		errorcode = output_unif(unif_outputfile, packets);
+		errorcode = cart_make_unif(unif_outputfile, unif_chunks);
 		if (errorcode) {
 			trk_log(TRK_ERROR, "error outputing unif file.");
 			clearerr(unif_outputfile);
@@ -353,6 +365,10 @@ int do_output(copynes_packet_t* packets, int npackets)
 		}
 		fclose(unif_outputfile);
 	}
+
+	if (prg_data) free(prg_data);
+	if (chr_data) free(chr_data);
+	if (wram_data) free(wram_data);
 
 	trk_log(TRK_DEBUG, "End output");
 	return 0;
@@ -433,4 +449,12 @@ int dump_cart(void)
 	return errorcode;
 }
 
-
+struct 
+cart_unif_data* add_unif_opts(struct cart_unif_data* unif_chunks)
+{
+	struct cart_unif_data* result = unif_chunks;
+	const char* boardname = get_string_setting("boardname");
+	if (boardname) {
+		result = cart_unif_add_boardname_chunk(result, boardname);
+	}
+}

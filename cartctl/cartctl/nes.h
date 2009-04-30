@@ -31,6 +31,11 @@
 #define CART_TRAINER 4
 #define CART_FOUR_SCREEN_VROM 8
 
+typedef struct cart_unif_data {
+	struct cart_unif_chunk* chunk;
+	struct cart_unif_data* next;
+} cart_unif_data_t;
+
 typedef struct cart_unif_chunk_header {
 	char id[4];
 	uint32_t size;
@@ -59,21 +64,20 @@ extern int cart_make_nes(FILE* output, long prg_size_in_bytes, uint8_t* prg, lon
 extern int cart_fmake_nes(FILE* output, FILE* prg, FILE* chr, uint8_t mapper_no, uint8_t mirroring_mask);
 
 /* make a .unif file out of a group of unif chunks from memory */
-extern int cart_make_unif(FILE* output, struct cart_unif_chunk* chunks, int num_chunks);
+int cart_make_unif(FILE* output, struct cart_unif_data* chunks);
 
 /* Functions used to create unif chunks. */
 
 /* Used to specify the unif boardname. */
-struct cart_unif_chunk cart_unif_boardname_chunk(char* boardname);
+struct cart_unif_data* cart_unif_add_boardname_chunk(struct cart_unif_data* chunks, const char* boardname);
 /* Add a dumper's name to the file. */
-struct cart_unif_chunk cart_unif_dumpername_chunk(char* dumpername);
+struct cart_unif_data* cart_unif_add_dumpername_chunk(struct cart_unif_data* chunks, char* dumpername);
 /* Add info about the dumper */
-struct cart_unif_chunk cart_unif_dumperinfo_chunk(struct cart_dumperinfo dumperinfo);
+struct cart_unif_data* cart_unif_add_dumperinfo_chunk(struct cart_unif_data* chunks, struct cart_dumperinfo dumperinfo);
 /* Add one chunk using this function for each prg chip */
-struct cart_unif_chunk cart_unif_prg_chunk(uint32_t size, uint8_t* prg_data, int chip_number);
+struct cart_unif_data* cart_unif_add_prg_chunk(struct cart_unif_data* chunks, uint32_t size, uint8_t* prg_data, int chip_number);
 /* Add one chunk using this function for each chr chip */
-struct cart_unif_chunk cart_unif_chr_chunk(uint32_t size, uint8_t* chr_data, int chip_number);
+struct cart_unif_data* cart_unif_add_chr_chunk(struct cart_unif_data* chunks, uint32_t size, uint8_t* chr_data, int chip_number);
 /* Generic Unif chunk function.  Use if no specific function is available for the desired chunk. */
-struct cart_unif_chunk cart_unif_chunk(char id[4], uint32_t data_size, uint8_t* data);
-
+struct cart_unif_data* cart_unif_add_chunk(struct cart_unif_data* chunks, char id[4], uint32_t data_size, const uint8_t* data);
 #endif

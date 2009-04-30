@@ -1,3 +1,10 @@
+2009-04-28 Bjorn
+	* copynesl/dump_cart.c:
+		More memory fixes (all tests passed);
+	* copynesl/dump_cart.c, copynesl/options.c: 
+	  	Added unif support
+
+
 2009-04-27 Bjorn
 	* configure.ac:
 		Updated version to 0.3.6

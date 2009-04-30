@@ -1,3 +1,7 @@
+2009-04-28:  Bjorn
+	* cartctl/cartctl/unifutils.c, cartctl/cartctl/nes.h:
+		Changed unif to use dynamic memory
+
 2009-04-25  bjorn
 	* cartctl/Makefile.am, 	cartctl/nes.h, 
 	  cartctl/nesutils.c, cartctl/unifutils:

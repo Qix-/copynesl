@@ -67,6 +67,8 @@ init_options(int argc, char** argv)
 			"                              are used to determine file format, so only\n"
 			"                              specific extensions are accepted.  This option\n"
 			"                              can be repeated for multiple output files.\n"},
+		{ "boardname", 1, NULL, 'b', NULL, STRING_SETTING, NULL, 
+			"  -b, --boardname=BOARD       Specify the boardname used for unif formats.\n"},
 #if HAVE_LIBCOPYNES
 		{ "data-port", 1, NULL, 'D', NULL, STRING_SETTING, "/dev/ttyUSB0", 
 			"  -D, --data-port=DEVICE      Specify the copynes data port.\n"},

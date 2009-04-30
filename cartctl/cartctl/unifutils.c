@@ -23,62 +23,78 @@
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include "nes.h"
 
-struct cart_unif_chunk
-cart_unif_chunk(char id[4], uint32_t data_size, uint8_t* data)
+struct cart_unif_data*
+cart_unif_add_chunk(struct cart_unif_data* chunks, char id[4], uint32_t data_size, const uint8_t* data)
 {
+	struct cart_unif_data* cur = NULL;
 	struct cart_unif_chunk result;
-	result.header.id[0] = id[0];
-	result.header.id[1] = id[1];
-	result.header.id[2] = id[2];
-	result.header.id[3] = id[3];
+	if (!chunks) {
+		chunks = (struct cart_unif_data*)malloc(sizeof(struct cart_unif_data));
+		cur = chunks;
+	} else {
+		cur = chunks;
+		while (cur->next) cur = cur->next;
+		cur->next = (struct cart_unif_data*)malloc(sizeof(struct cart_unif_data));
+		cur = cur->next;
+	}
+	cur->next = NULL;
+	cur->chunk = (struct cart_unif_chunk*)malloc(sizeof(struct cart_unif_chunk));
+	cur->chunk->header.id[0] = id[0];
+	cur->chunk->header.id[1] = id[1];
+	cur->chunk->header.id[2] = id[2];
+	cur->chunk->header.id[3] = id[3];
 	
-	result.header.size = data_size;
-	result.data = data;
-	return result;
+	cur->chunk->header.size = data_size;
+	cur->chunk->data = (uint8_t*)malloc(data_size);
+	cur->chunk->data = memcpy(cur->chunk->data, data, data_size);
+	if (!cur->chunk->data) return NULL;
+
+	return chunks;
 }
 
 /* MAPR Contains the unif boardname
  */
-struct cart_unif_chunk
-cart_unif_boardname_chunk(char* boardname)
+struct cart_unif_data*
+cart_unif_add_boardname_chunk(struct cart_unif_data* chunks, const char* boardname)
 {
-	return cart_unif_chunk("MAPR", (uint32_t)strlen(boardname), (uint8_t*)boardname);
+	return cart_unif_add_chunk(chunks, "MAPR", (uint32_t)strlen(boardname) + 1, (const uint8_t*)boardname);
 }
 
 /* NAME - Contains a null terminated char* with the full name of the game.
  */
-struct cart_unif_chunk
-vart_unif_dumpername_chunk(char* dumpername)
+struct cart_unif_data*
+cart_unif_add_dumpername_chunk(struct cart_unif_data* chunks, char* dumpername)
 {
-	return cart_unif_chunk("NAME", (uint32_t)strlen(dumpername), (uint8_t*)dumpername);
+	return cart_unif_add_chunk(chunks, "NAME", (uint32_t)strlen(dumpername), (uint8_t*)dumpername);
 }
 
-struct cart_unif_chunk
-cart_unif_dumperinfo_chunk(struct cart_dumperinfo dumperinfo)
+struct cart_unif_data*
+cart_unif_add_dumperinfo_chunk(struct cart_unif_data* chunks, struct cart_dumperinfo dumperinfo)
 {
-	return cart_unif_chunk("DINF", (uint32_t)sizeof(dumperinfo), (uint8_t*)&dumperinfo);
+	return cart_unif_add_chunk(chunks, "DINF", (uint32_t)sizeof(dumperinfo), (uint8_t*)&dumperinfo);
 }
 
 /* PRG0 - PRGF
  * dump of PRG data.  Use 1-F if cartridge has more than 1 chip.
  */
-struct cart_unif_chunk 
-cart_unif_prg_chunk(uint32_t size, uint8_t* prg_data, int chip_number)
+struct cart_unif_data*
+cart_unif_add_prg_chunk(struct cart_unif_data* chunks, uint32_t size, uint8_t* prg_data, int chip_number)
 {
-	return cart_unif_chunk("PRG0", size, prg_data);
+	return cart_unif_add_chunk(chunks, "PRG0", size, prg_data);
 }
 
 /* CHR0 - CHRF
  * dump of chr data
  */
-struct cart_unif_chunk
-cart_unif_chr_chunk(uint32_t size, uint8_t* chr_data, int chip_number)
+struct cart_unif_data*
+cart_unif_add_chr_chunk(struct cart_unif_data* chunks, uint32_t size, uint8_t* chr_data, int chip_number)
 {
-	return cart_unif_chunk("CHR0", size, chr_data);
+	return cart_unif_add_chunk(chunks, "CHR0", size, chr_data);
 }
 
 /* XXX TODO unimplemented unif functions */
@@ -136,10 +152,11 @@ cart_unif_chr_chunk(uint32_t size, uint8_t* chr_data, int chip_number)
  * 20h-EOF : Chunks
  */
 int 
-cart_make_unif(FILE* output, struct cart_unif_chunk* chunks, int num_chunks)
+cart_make_unif(FILE* output, struct cart_unif_data* chunks)
 {
 	int i = 0;
-	struct cart_unif_chunk cur_chunk;
+	struct cart_unif_data* cur_chunk = NULL;
+	struct cart_unif_data* tmp_chunk = NULL;
 
 	struct {
 		uint8_t identification[4]; /* MUST be "UNIF" */
@@ -150,10 +167,17 @@ cart_make_unif(FILE* output, struct cart_unif_chunk* chunks, int num_chunks)
 	memset (&(unif_header.expansion), 0, 24);
 	fwrite(&unif_header, sizeof(unif_header), 1, output);
 
-	for (i = 0; i < num_chunks; i++) {
-		cur_chunk = chunks[i];
-		fwrite(&(cur_chunk.header), sizeof(cur_chunk.header), 1, output);
-		fwrite(cur_chunk.data, cur_chunk.header.size, 1, output);
+	cur_chunk = chunks;
+	while (cur_chunk) {
+		fwrite(&(cur_chunk->chunk->header), sizeof(cur_chunk->chunk->header), 1, output);
+		fwrite(cur_chunk->chunk->data, cur_chunk->chunk->header.size, 1, output);
+		tmp_chunk = cur_chunk;
+		cur_chunk = cur_chunk->next;
+
+		free(tmp_chunk->chunk->data);
+		free(tmp_chunk->chunk);
+		free(tmp_chunk);
 	}
+
 	return 0;
 }
