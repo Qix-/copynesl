@@ -87,7 +87,7 @@
 #define PACKAGE_VERSION "0.4.0"
 
 /* Define to 1 if you have the ANSI C header files. */
-#define STDC_HEADERS 1
+/* #undef STDC_HEADERS */
 
 /* Define to 1 if strerror_r returns char *. */
 /* #undef STRERROR_R_CHAR_P */

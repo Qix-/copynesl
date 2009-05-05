@@ -1,4 +1,10 @@
+2009-05-04 Bjorn
+	* configure.ac, copynesl/Makefile.am, copynesl/copynesl.c:
+		Fixed conditional libcopynes support
+
 2009-04-28 Bjorn
+	* man/copynesl.1, copynesl/options.c:
+		Tweaked manual for unif support.
 	* copynesl/dump_cart.c:
 		More memory fixes (all tests passed);
 	* copynesl/dump_cart.c, copynesl/options.c: 

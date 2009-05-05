@@ -34,6 +34,8 @@ POST_UNINSTALL = :
 build_triplet = i686-pc-linux-gnu
 host_triplet = i686-pc-linux-gnu
 bin_PROGRAMS = copynesl$(EXEEXT)
+am__append_1 = copynes.c dump_cart.c 
+am__append_2 = -lcopynes
 subdir = copynesl
 DIST_COMMON = $(noinst_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
@@ -47,12 +49,18 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
+am__copynesl_SOURCES_DIST = copynesl.c options.c plugins.c copynes.c \
+	dump_cart.c
+am__objects_1 = copynes.$(OBJEXT) \
+	dump_cart.$(OBJEXT)
 am_copynesl_OBJECTS = copynesl.$(OBJEXT) options.$(OBJEXT) \
-	plugins.$(OBJEXT) copynes.$(OBJEXT) dump_cart.$(OBJEXT)
+	plugins.$(OBJEXT) $(am__objects_1)
 copynesl_OBJECTS = $(am_copynesl_OBJECTS)
 copynesl_LDADD = $(LDADD)
+am__DEPENDENCIES_1 =
 copynesl_DEPENDENCIES = ../trk_log/libtrk_log.a \
-	../settings/libsettings.a ../cartctl/cartctl/libcartctl.la
+	../settings/libsettings.a ../cartctl/cartctl/libcartctl.la \
+	$(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I. -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -66,7 +74,7 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(copynesl_SOURCES)
-DIST_SOURCES = $(copynesl_SOURCES)
+DIST_SOURCES = $(am__copynesl_SOURCES_DIST)
 HEADERS = $(noinst_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -107,7 +115,7 @@ INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LDFLAGS =  -L/usr/local/lib/copynes
 LIBOBJS = 
-LIBS = 
+LIBS = -lcopynes 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LN_S = ln -s
 LTLIBOBJS = 
@@ -182,9 +190,10 @@ top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
 AM_CFLAGS = -g -Wall -pedantic -W -Wno-unused -ansi -DSYSCONFDIR=\"${prefix}/etc\" -DDATAROOTDIR=\"${prefix}/share\"
-copynesl_SOURCES = copynesl.c options.c plugins.c copynes.c dump_cart.c 
+copynesl_SOURCES = copynesl.c options.c plugins.c $(am__append_1)
 noinst_HEADERS = options.h plugins.h nes.h errorcodes.h
-LDADD = ../trk_log/libtrk_log.a ../settings/libsettings.a ../cartctl/cartctl/libcartctl.la -lcopynes
+LDADD = ../trk_log/libtrk_log.a ../settings/libsettings.a \
+	../cartctl/cartctl/libcartctl.la $(am__append_2)
 INCLUDES = -I.. -I../cartctl
 MEASOURCES = auto
 all: all-am
@@ -200,9 +209,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  copynesl/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  copynesl/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  copynesl/Makefile
+	  $(AUTOMAKE) --gnu  copynesl/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

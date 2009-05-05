@@ -33,7 +33,9 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#if HAVE_LIBCOPYNES
 #include <copynes/copynes.h>
+#endif
 #include <settings/settings.h>
 #include <trk_log/trk_log.h>
 #include "nes.h"

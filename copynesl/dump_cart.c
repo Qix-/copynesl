@@ -41,9 +41,99 @@
 
 #define MAX_OUTPUT_FORMATS 5
 
-struct cart_unif_data* add_unif_opts(struct cart_unif_data* unif_chunks);
+/* local prototypes */
+static struct cart_unif_data* add_unif_opts(struct cart_unif_data* unif_chunks);
+int required_for_output(int packet_type);
+int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask, unsigned short* has_wram);
+long get_data_size(copynes_packet_t* packets, long npackets, int packet_type);
+int set_one_file(FILE** oprg, FILE** ochr, FILE** owram, FILE** ones, FILE** ounif, FILE* input, const char* ext, int* omapper);
+int get_dumper_options(FILE** oprg, FILE** ochr,  FILE** owram, FILE** ones,  FILE** ounif, int* omapper);
+uint8_t* dump_data(copynes_packet_t* packets, int npackets, int type, long size);
+int do_output(copynes_packet_t* packets, int npackets, uint8_t copynes_mirroring_mask, unsigned short has_wram);
+uint8_t copynes_to_ines_mirrmask(uint8_t copynes_mirroring_mask, unsigned short has_battery);
 
-int required_for_output(int packet_type)
+/*
+ * prerequisits:
+ * NES MUST BE VERIFIED TO BE ON
+ * Options required for dumping cart (see man 1 copynesl)
+ *  must be verified
+ */
+int
+dump_cart(void)
+{
+	const char* plugin_dir = get_string_setting("plugin-dir");
+	const char* clear_plugin = get_string_setting("clear-plugin");
+	const char* requested_plugin = get_string_setting("dump-cart");
+	char* plugin_path;
+	char* clplugin_path;
+	char* filepath = NULL;
+	const char* plugin = NULL; 
+	int errorcode = 0;
+	uint8_t mirroring = 0;
+	int output_formats[MAX_OUTPUT_FORMATS];
+    	copynes_packet_t * packets = NULL;
+	int npackets = 0;
+	int i = 0;
+	uint8_t copynes_mirroring_mask;
+	unsigned short has_battery = 0;
+
+	copynes_t cn = NULL;
+
+	if (!plugin_dir || !clear_plugin) return -1;
+	if (!requested_plugin) {
+		trk_log(TRK_ERROR, "No Plugin Specified.");
+		return INVALID_OPTIONS;
+	}
+
+	clplugin_path = get_plugin_path(plugin_dir, clear_plugin);
+	if (!clplugin_path) {
+		free(clplugin_path);
+		return INVALID_OPTIONS;
+	}
+	trk_log(TRK_DEBUG, "Found %s", clplugin_path);
+	set_setting(STRING_SETTING, "clear-plugin", clplugin_path);
+	free(clplugin_path);
+
+	trk_log(TRK_VERBOSE, "Looking for %s", requested_plugin);
+	/* we need at least a plugin setting and either output format or output file settings. */
+	plugin_path = get_plugin_path(plugin_dir, requested_plugin);
+	if (errorcode || !plugin_path) {
+		trk_log(TRK_ERROR, "Could not find %s at %s. Ensure plugin-dir and clear-plugin settings are correct.", get_string_setting("clear_plugin"), plugin_dir);
+		free(plugin_path);
+		return INVALID_OPTIONS;
+	}
+	trk_log(TRK_DEBUG, "Found %s", plugin_path);
+	set_setting(STRING_SETTING, "dump-plugin", plugin_path);
+	free(plugin_path);
+	
+
+	cn = copynes_new();
+	errorcode = copynes_up(cn);
+	if (errorcode) return errorcode;
+
+    /* read in the packets */
+       do_input(cn, &packets, &npackets, &copynes_mirroring_mask, &has_battery);
+    
+    /* reading from copynes complete. */
+	do_output(packets, npackets, copynes_mirroring_mask, has_battery);
+    /* write out .prg, .chr, and .sav files */
+    
+    /* cleanup */
+    for(i = 0; i < npackets; i++)
+    {
+        free(packets[i]->data);
+        free(packets[i]);
+    }
+    free(packets);
+
+	copynes_free(cn);
+	return errorcode;
+}
+
+/* Begin Functions local to this file */
+
+int 
+required_for_output(int packet_type)
 {
 	char* output_format = NULL;
 
@@ -53,7 +143,44 @@ int required_for_output(int packet_type)
 	return 1;	
 }
 
-int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
+uint8_t 
+copynes_to_ines_mirrmask(uint8_t copynes_mirroring_mask, unsigned short has_battery)
+{
+    	uint8_t ines_mirroring_mask = 0;
+	/* mirroring bit is the same */
+	ines_mirroring_mask |= (copynes_mirroring_mask & 0x01);
+	if (copynes_mirroring_mask & 0x02) {
+		ines_mirroring_mask |= CART_FOUR_SCREEN_VROM;	
+	}
+	if (has_battery) {
+		ines_mirroring_mask |= CART_HAS_BATTERY;
+	}
+	
+	return ines_mirroring_mask;
+}
+
+/* Pull data required for the dump from the copynes
+ * and store is in opackets.  onpackets represents
+ * the number of packets read.
+ * data read by this function: 
+ *  mirroring bit, prg, chr, wram
+ * data that is not required for the output format
+ *
+ * Parameters: 
+ *   cn - libcopynes connection to copynes
+ *   opackets - store the data required for the chosen 
+ *              output format
+ *   onpackets - the number of packets in opackets
+ *   omirrmask - the mirroring mask read from the copynes
+ *
+ * Options used:
+ *   clear-plugin - normally clear.bin.  The plugin used
+ *                  to clear the copynes memory.
+ *   dump-plugin  - the plugin to use to pull the data
+ *                  from the copynes.
+ */
+int 
+do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask, unsigned short* has_wram)
 {
     copynes_packet_t packet = 0;
     copynes_packet_t* packets = NULL;
@@ -61,7 +188,6 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
  
     const char* clear_plugin = get_string_setting("clear-plugin");
     const char* dump_plugin = get_string_setting("dump-plugin");
-    uint8_t ines_mirroring_mask = 0;
     uint8_t copynes_mirroring_mask = 0;
 /*    mirroring = 0;
  */
@@ -69,6 +195,8 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
     int errorcode = 0;
 
     int i = 0;
+
+	*has_wram = 0;
 
 	/* first flush the CopyNES */
 	copynes_flush(cn);
@@ -85,11 +213,6 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
 	sleep(3);
 
 	copynes_read(cn, &copynes_mirroring_mask, 1, &t);
-	/* mirroring bit is the same */
-	ines_mirroring_mask |= (copynes_mirroring_mask & 0x01);
-	if (copynes_mirroring_mask & 0x02) {
-		ines_mirroring_mask |= CART_FOUR_SCREEN_VROM;	
-	}
 
 
 
@@ -128,8 +251,7 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
 	    	trk_log(TRK_DEBUG, "CHR %d Kb\n", packet->size / 1024);
                 break;
             case PACKET_WRAM:
-	    	ines_mirroring_mask |= CART_HAS_BATTERY;
-		trk_log(TRK_VERBOSE, "Cart has battery.  ines_mirroring_mask %d CART_HAS_BATTERY %d", ines_mirroring_mask, CART_HAS_BATTERY);
+	    	*has_wram = 1; 
 	    	trk_log(TRK_DEBUG, "SAV %d Kb\n", packet->size / 1024);
                 break;
         }
@@ -143,17 +265,18 @@ int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets)
 		free (packet);
 	}
     }
-    trk_log(TRK_DEBUG, "ines mirroring mask byte: %x", ines_mirroring_mask);
-    set_setting(INT_SETTING, "ines-mirroring-mask", (void*)(int)ines_mirroring_mask);
+    
     trk_log(TRK_DEBUGVERBOSE, "npackets: %d", npackets);
     *opackets = packets;
     *onpackets = npackets;
+    *omirrmask = copynes_mirroring_mask;
     /* reset the CopyNES one last time */
     copynes_reset (cn, RESET_COPYMODE);
     return 0;
 }
 
-long get_data_size(copynes_packet_t* packets, long npackets, int packet_type)
+long 
+get_data_size(copynes_packet_t* packets, long npackets, int packet_type)
 {
 	long result_size = 0;
 	int i = 0;
@@ -166,22 +289,27 @@ long get_data_size(copynes_packet_t* packets, long npackets, int packet_type)
 	return result_size;
 }
 
-int set_one_file(FILE** oprg, FILE** ochr, FILE** owram, FILE** ones, FILE** ounif, FILE* input, const char* ext, int* omapper)
+/* use the ext to select and set one of the output files.  
+ * Leave the others alone.
+ */
+int 
+set_one_file(FILE** oprg, FILE** ochr, FILE** owram, FILE** ones, FILE** ounif, FILE* input, const char* ext, int* omapper)
 {
 	int mapper = get_int_setting("mapper");
 	trk_log(TRK_VERBOSE, "ext: %s", ext);
 	if (!strcmp(ext, "prg") || !strcmp(ext, "PRG")) {
 		*oprg = input;
-	} else if (!strcmp(ext, "chr") || !strcmp(ext, "CHR")) {
+	} else if (   !strcmp(ext, "chr") || !strcmp(ext, "CHR")) {
 		*ochr = input;
-	} else if (!strcmp(ext, "wram") || !strcmp(ext, "WRAM") ||
-		   !strcmp(ext, "wrm") || !strcmp(ext, "WRM")) {
+	} else if (   !strcmp(ext, "wram") || !strcmp(ext, "WRAM") 
+		   || !strcmp(ext, "wrm") || !strcmp(ext, "WRM") 
+		   || !strcmp(ext, "sav") || !strcmp(ext, "SAV")) {
 		*owram = input;
 	} else if (!strcmp(ext, "nes") || !strcmp(ext, "NES")) {
 		*ones = input;
 		*omapper = mapper;
-	} else if (!strcmp(ext, "unif") || !strcmp(ext, "UNIF") ||
-		   !strcmp(ext, "unf") || !strcmp(ext, "UNF")) {
+	} else if (   !strcmp(ext, "unif") || !strcmp(ext, "UNIF") 
+		   || !strcmp(ext, "unf") || !strcmp(ext, "UNF")) {
 		   	trk_log(TRK_VERBOSE, "setting unif");
 			*ounif = input;
 	} else {
@@ -191,9 +319,10 @@ int set_one_file(FILE** oprg, FILE** ochr, FILE** owram, FILE** ones, FILE** oun
 	return 0;
 }
 
-int get_dumper_options(FILE** oprg, FILE** ochr, 
-		       FILE** owram, FILE** ones, 
-		       FILE** ounif, int* omapper)
+int 
+get_dumper_options(FILE** oprg, FILE** ochr, 
+		   FILE** owram, FILE** ones, 
+		   FILE** ounif, int* omapper)
 {
 	FILE* cur;
 	const char* oformat_setting;
@@ -245,7 +374,9 @@ int get_dumper_options(FILE** oprg, FILE** ochr,
 
 }
 
-uint8_t* dump_data(copynes_packet_t* packets, int npackets, int type, long size) {
+uint8_t* 
+dump_data(copynes_packet_t* packets, int npackets, int type, long size) 
+{
 	int i = 0;
 	long size_completed = 0;
 	uint8_t* start = NULL;
@@ -264,7 +395,8 @@ uint8_t* dump_data(copynes_packet_t* packets, int npackets, int type, long size)
 	return start;
 }
 
-int do_output(copynes_packet_t* packets, int npackets)
+int 
+do_output(copynes_packet_t* packets, int npackets, uint8_t copynes_mirroring_mask, unsigned short has_wram)
 {
 	uint8_t* prg_data = NULL;
 	uint8_t* chr_data = NULL;
@@ -281,6 +413,7 @@ int do_output(copynes_packet_t* packets, int npackets)
 	long wram_data_size = 0;
 	int errorcode = 0;
 	struct cart_unif_data* unif_chunks = NULL;
+	uint8_t ines_mirroring_mask = 0;
 
 	errorcode = get_dumper_options(&prg_outputfile, &chr_outputfile, &wram_outputfile, &nes_outputfile, &unif_outputfile, &mapper);
 	trk_log(TRK_VERBOSE, "%d %d %d %d %d mapper: %d", prg_outputfile, chr_outputfile, wram_outputfile, nes_outputfile, unif_outputfile, mapper);
@@ -348,10 +481,11 @@ int do_output(copynes_packet_t* packets, int npackets)
 	}
 
 	if (nes_outputfile && prg_data_size > 0) {
-		int mirroring = (int)get_int_setting("ines-mirroring-mask");
+		uint8_t ines_mirroring = 0;
 		int mapper_no = (int)get_int_setting("mapper");
-		trk_log(TRK_DEBUG, "Outputing nes file. mapper %d, mirroring mask %x", mapper, mirroring);
-		 cart_make_nes(nes_outputfile, prg_data_size, prg_data, chr_data_size, chr_data, (uint8_t) mapper, (uint8_t)mirroring);
+		ines_mirroring = copynes_to_ines_mirrmask(copynes_mirroring_mask, has_wram);
+		trk_log(TRK_DEBUG, "Outputing nes file. mapper %d, mirroring mask %x", mapper, ines_mirroring);
+		cart_make_nes(nes_outputfile, prg_data_size, prg_data, chr_data_size, chr_data, (uint8_t) mapper, (uint8_t)ines_mirroring);
 		 
 		fclose(nes_outputfile);
 	}
@@ -374,82 +508,8 @@ int do_output(copynes_packet_t* packets, int npackets)
 	return 0;
 }
 
-/*
- * prerequisits:
- * NES MUST BE VERIFIED TO BE ON
- * Options required for dumping cart (see man 1 copynesl)
- *  must be verified
- */
-int dump_cart(void)
-{
-	const char* plugin_dir = get_string_setting("plugin-dir");
-	const char* clear_plugin = get_string_setting("clear-plugin");
-	const char* requested_plugin = get_string_setting("dump-cart");
-	char* plugin_path;
-	char* clplugin_path;
-	char* filepath = NULL;
-	const char* plugin = NULL; 
-	int errorcode = 0;
-	uint8_t mirroring = 0;
-	int output_formats[MAX_OUTPUT_FORMATS];
-    	copynes_packet_t * packets = NULL;
-	int npackets = 0;
-	int i = 0;
 
-	copynes_t cn = NULL;
-
-	if (!plugin_dir || !clear_plugin) return -1;
-	if (!requested_plugin) {
-		trk_log(TRK_ERROR, "No Plugin Specified.");
-		return INVALID_OPTIONS;
-	}
-
-	clplugin_path = get_plugin_path(plugin_dir, clear_plugin);
-	if (!clplugin_path) {
-		free(clplugin_path);
-		return INVALID_OPTIONS;
-	}
-	trk_log(TRK_DEBUG, "Found %s", clplugin_path);
-	set_setting(STRING_SETTING, "clear-plugin", clplugin_path);
-	free(clplugin_path);
-
-	trk_log(TRK_VERBOSE, "Looking for %s", requested_plugin);
-	/* we need at least a plugin setting and either output format or output file settings. */
-	plugin_path = get_plugin_path(plugin_dir, requested_plugin);
-	if (errorcode || !plugin_path) {
-		trk_log(TRK_ERROR, "Could not find %s at %s. Ensure plugin-dir and clear-plugin settings are correct.", get_string_setting("clear_plugin"), plugin_dir);
-		free(plugin_path);
-		return INVALID_OPTIONS;
-	}
-	trk_log(TRK_DEBUG, "Found %s", plugin_path);
-	set_setting(STRING_SETTING, "dump-plugin", plugin_path);
-	free(plugin_path);
-	
-
-	cn = copynes_new();
-	errorcode = copynes_up(cn);
-	if (errorcode) return errorcode;
-
-    /* read in the packets */
-       do_input(cn, &packets, &npackets);
-    
-    /* reading from copynes complete. */
-	do_output(packets, npackets);
-    /* write out .prg, .chr, and .sav files */
-    
-    /* cleanup */
-    for(i = 0; i < npackets; i++)
-    {
-        free(packets[i]->data);
-        free(packets[i]);
-    }
-    free(packets);
-
-	copynes_free(cn);
-	return errorcode;
-}
-
-struct 
+static struct 
 cart_unif_data* add_unif_opts(struct cart_unif_data* unif_chunks)
 {
 	struct cart_unif_data* result = unif_chunks;
@@ -457,4 +517,5 @@ cart_unif_data* add_unif_opts(struct cart_unif_data* unif_chunks)
 	if (boardname) {
 		result = cart_unif_add_boardname_chunk(result, boardname);
 	}
+	return 0;
 }

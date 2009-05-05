@@ -30,7 +30,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <trk_log/trk_log.h>
+#if HAVE_LIBCOPYNES
 #include <copynes/copynes.h>
+#endif
 #include "options.h"
 #include "plugins.h"
 #include "errorcodes.h"

@@ -12,14 +12,12 @@ AC_ARG_WITH(inspect,
 	[AC_DEFINE(INSPECT_ERRORS, 1, "inspect errors")],
 	[AC_DEFINE(INSPECT_ERRORS, 0, "inspect errors")])
 
-# Check for lincopynes
-AC_MSG_CHECKING(for libcopynes)
 
 AC_ARG_WITH(copynes,
     AC_HELP_STRING([--with-copynes@<:@=DIR@:>@],[Include copynes hardware support (default yes)]),
     [WITH_COPYNES=$withval],[WITH_COPYNES="yes"])
 	
-if test "$WITH_COPYNES" != "no"; then
+if test "x$WITH_COPYNES" != "xno"; then
 	use_copynes=yes
 	if test "x$WITH_COPYNES" = "xyes"; then
 #default search location for libcopynes
@@ -32,17 +30,23 @@ if test "$WITH_COPYNES" != "no"; then
 else
 	use_copynes=no
 fi
+
+# Checks for libraries.
+if test "x$use_copynes" != "xno"; then
+	AC_SEARCH_LIBS([copynes_open], [copynes],[use_copynes=yes], [use_copynes=no])
+fi
+if test "x$use_copynes" != "xno"; then
+	AC_DEFINE(HAVE_LIBCOPYNES,1,["have libcopynes available"])
+fi
+AM_CONDITIONAL([HAVE_LIBCOPYNES], [test "x$use_copynes" != "xno"])
+# Check for lincopynes
+AC_MSG_CHECKING(for libcopynes)
 AC_MSG_RESULT([$use_copynes])
 
 
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_LIBTOOL
-
-# Checks for libraries.
-if test "x$use_copynes" != "xno"; then
-	AC_CHECK_LIB([copynes], [copynes_open],[AC_DEFINE(HAVE_LIBCOPYNES,1,"have libcopynes available")])
-fi
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h stdint.h stdlib.h string.h termio.h unistd.h getopt.h unistd.h])
@@ -71,4 +75,11 @@ AC_CONFIG_SUBDIRS([cartctl])
 
 AC_OUTPUT
 
+if test "x$use_copynes" == "xno"
+then
+	AC_MSG_WARN([ libcopynes not found! 
+	All functions that communicate with CopyNES will be disabled.  
+	In order to use these functions, you will need to install libcopynes.
+	use --with-copynes to force a specific location for libcopynes.])
+fi
 

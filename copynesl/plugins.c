@@ -85,7 +85,7 @@ list_plugins(void)
 	int linelen = 0;
 	char* outline = NULL;
 	int printing_section = 0;
-	char* header_printed = 0;
+	int header_printed = 0;
 
 	type = get_setting("plugin-dir", &val);
 	if (type == STRING_SETTING) {

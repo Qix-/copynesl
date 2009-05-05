@@ -83,7 +83,7 @@ INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LDFLAGS =  -L/usr/local/lib/copynes
 LIBOBJS = 
-LIBS = 
+LIBS = -lcopynes 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LN_S = ln -s
 LTLIBOBJS = 
@@ -171,9 +171,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  man/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  man/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  man/Makefile
+	  $(AUTOMAKE) --gnu  man/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
