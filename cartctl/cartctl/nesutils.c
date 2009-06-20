@@ -34,6 +34,15 @@ const int CHR_BLOCKSIZE = 8192;
 
 static long get_filesize(FILE* file);
 
+struct ines_header {
+	uint8_t identification[4]; /* MUST be "NES^Z" */
+	uint8_t num_prg_blocks; 
+	uint8_t num_chr_blocks;
+	uint8_t low_mapper_bits_and_mirroring;
+	uint8_t high_mapper_bits;
+        uint8_t expansion[8]; /* not yet used */
+};
+	
 
 static long 
 get_filesize(FILE* f)
@@ -111,15 +120,7 @@ int
 cart_make_nes(FILE* output, long prg_size_in_bytes, uint8_t* prg, long chr_size_in_bytes, uint8_t* chr, uint8_t mapper, uint8_t mirroring_mask)
 {
 	int errorcode = 0;
-
-	struct {
-		uint8_t identification[4]; /* MUST be "NES^Z" */
-		uint8_t num_prg_blocks; 
-		uint8_t num_chr_blocks;
-		uint8_t low_mapper_bits_and_mirroring;
-		uint8_t high_mapper_bits;
-	        uint8_t expansion[8]; /* not yet used */
-	} ines_header = 
+	struct ines_header header = 
 	{
 		"NES\x1A", 0, 0, 0, 0, "\0\0\0\0\0\0\0\0"
 	};
@@ -127,12 +128,12 @@ cart_make_nes(FILE* output, long prg_size_in_bytes, uint8_t* prg, long chr_size_
 	/* with the extended format, the low 4 bits of the mapper number go into the low 4 bits of byte 6
 	 * the high 4 bits of mapper number go into the low 4 bits of byte 7.
 	 */
-	ines_header.num_prg_blocks = prg_size_in_bytes / PRG_BLOCKSIZE;
-	ines_header.num_chr_blocks = chr_size_in_bytes / CHR_BLOCKSIZE;
-	ines_header.low_mapper_bits_and_mirroring = ((mapper & 0x0F) << 4) | (mirroring_mask);
-	ines_header.high_mapper_bits = (mapper & 0xF0);
+	header.num_prg_blocks = prg_size_in_bytes / PRG_BLOCKSIZE;
+	header.num_chr_blocks = chr_size_in_bytes / CHR_BLOCKSIZE;
+	header.low_mapper_bits_and_mirroring = ((mapper & 0x0F) << 4) | (mirroring_mask);
+	header.high_mapper_bits = (mapper & 0xF0);
 
-	fwrite(&ines_header, 1, sizeof(ines_header), output);
+	fwrite(&header, 1, sizeof(header), output);
 	fwrite(prg, prg_size_in_bytes,1, output);
 	fwrite(chr, chr_size_in_bytes,1, output);
 
@@ -140,4 +141,29 @@ cart_make_nes(FILE* output, long prg_size_in_bytes, uint8_t* prg, long chr_size_
 	return errorcode;
 }
 
-
+/* *oprg and *ochr will be malloced, and must be fread by caller.
+ * omapper and oxmirroring are expected to be able to hold one uint8_t each.
+ */
+int
+cart_split_nes(FILE* nesfile, uint8_t** oprg, uint8_t** ochr, uint8_t* omapper, uint8_t* omirroring_mask)
+{
+	struct ines_header header;
+	long prg_size_in_bytes = 0;
+	long chr_size_in_bytes = 0;
+	
+	fread(&header, sizeof(uint8_t), sizeof(header), nesfile);
+	prg_size_in_bytes = header.num_prg_blocks * PRG_BLOCKSIZE;
+	chr_size_in_bytes = header.num_chr_blocks * CHR_BLOCKSIZE;
+	if (oprg != NULL) {
+		*oprg = (uint8_t*)malloc(sizeof(uint8_t) * prg_size_in_bytes);
+	} 
+	if (ochr != NULL) {
+		*ochr = (uint8_t*)malloc(sizeof(uint8_t) * chr_size_in_bytes);
+	}
+	if (omapper != NULL) {
+		*omapper = ((header.low_mapper_bits_and_mirroring & 0xF0) >> 4);
+		*omapper |= (header.high_mapper_bits & 0xF0);
+		*omirroring_mask = (header.low_mapper_bits_and_mirroring & 0x0F);
+	}
+	return 0;
+}

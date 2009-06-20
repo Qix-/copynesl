@@ -23,7 +23,7 @@
 #ifndef COPYNESL_OPTIONS_H
 #define COPYNESL_OPTIONS_H
 
-enum commands {NONE = 0, DUMP_CART, PRINT_VERSION, PLAY_MODE, LIST_PLUGINS };
+enum commands {NONE = 0, DUMP_CART, PRINT_VERSION, PLAY_MODE, FORMAT_CONVERT, LIST_PLUGINS };
 
 int init_options(int argc, char** argv);
 int print_invalid_options(char* program_name);

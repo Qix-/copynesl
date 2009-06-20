@@ -1,3 +1,7 @@
+2009-05-07 Bjorn
+	* copynesl/convert.c:
+		begining of format conversion functionality
+
 2009-05-04 Bjorn
 	* configure.ac, copynesl/Makefile.am, copynesl/copynesl.c:
 		Fixed conditional libcopynes support

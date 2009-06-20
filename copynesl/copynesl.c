@@ -60,6 +60,9 @@ int main(int argc, char** argv)
 				if (!errorcode) printf("Playmode successfully entered.\n");
 				break;
 #endif
+			case FORMAT_CONVERT:
+				/* errorcode = format_convert();
+				 */
 			case LIST_PLUGINS:
 				errorcode = list_plugins();
 				break;

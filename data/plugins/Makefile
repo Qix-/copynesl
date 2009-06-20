@@ -100,16 +100,16 @@ OBJEXT = o
 PACKAGE = copynesl
 PACKAGE_BUGREPORT = cradelit@gmail.com
 PACKAGE_NAME = copynesl
-PACKAGE_STRING = copynesl 0.4.0
+PACKAGE_STRING = copynesl 0.4.1
 PACKAGE_TARNAME = copynesl
-PACKAGE_VERSION = 0.4.0
+PACKAGE_VERSION = 0.4.1
 PATH_SEPARATOR = :
 RANLIB = ranlib
 SED = /bin/sed
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = strip
-VERSION = 0.4.0
+VERSION = 0.4.1
 abs_builddir = /home/crade/svn/copynesl/data/plugins
 abs_srcdir = /home/crade/svn/copynesl/data/plugins
 abs_top_builddir = /home/crade/svn/copynesl
@@ -193,9 +193,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  data/plugins/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  data/plugins/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  data/plugins/Makefile
+	  $(AUTOMAKE) --foreign  data/plugins/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

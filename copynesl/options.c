@@ -138,6 +138,8 @@ get_command(void)
 		cmd = PRINT_VERSION;
 	} else if (get_bool_setting("play-mode")) {
 		cmd = PLAY_MODE;
+	} else if (get_bool_setting("convert")) {
+		cmd = FORMAT_CONVERT;
 	} else if (get_string_setting("list-plugins")) {
 		cmd = LIST_PLUGINS;
 	}

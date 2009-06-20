@@ -23,7 +23,7 @@
 #ifndef CARTCTL_NES_H
 #define CARTCTL_NES_H
 
-#define UNIF_REVISION 7
+#define CART_UNIF_REVISION 7
 
 #define CART_HORIZONTAL_MIRRORING 0
 #define CART_VERTICAL_MIRRORING 1
@@ -62,6 +62,9 @@ typedef struct cart_dumperinfo
 extern int cart_make_nes(FILE* output, long prg_size_in_bytes, uint8_t* prg, long chr_size_in_bytes, uint8_t* chr, uint8_t mapper_no, uint8_t mirroring_mask);
 /* make a .nes file out of a prg file and a chr file */
 extern int cart_fmake_nes(FILE* output, FILE* prg, FILE* chr, uint8_t mapper_no, uint8_t mirroring_mask);
+
+/* split a .nes file into it's peices: prg, chr, mapper number and mirroring mask */
+extern int cart_split_nes(FILE* nesfile, uint8_t** oprg, uint8_t** ochr, uint8_t* omapper, uint8_t* omirroring_mask);
 
 /* make a .unif file out of a group of unif chunks from memory */
 int cart_make_unif(FILE* output, struct cart_unif_data* chunks);

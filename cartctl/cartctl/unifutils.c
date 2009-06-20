@@ -162,7 +162,7 @@ cart_make_unif(FILE* output, struct cart_unif_data* chunks)
 		uint8_t identification[4]; /* MUST be "UNIF" */
 		uint32_t revision; /* Revision number */
 	        uint8_t expansion[24]; /* not yet used */
-	} unif_header = { "UNIF", UNIF_REVISION, {0} };
+	} unif_header = { "UNIF", CART_UNIF_REVISION, {0} };
 
 	memset (&(unif_header.expansion), 0, 24);
 	fwrite(&unif_header, sizeof(unif_header), 1, output);
