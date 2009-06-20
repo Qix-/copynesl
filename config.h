@@ -68,6 +68,10 @@
 /* "inspect errors" */
 #define INSPECT_ERRORS 0
 
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#define LT_OBJDIR ".libs/"
+
 /* Name of package */
 #define PACKAGE "copynesl"
 
@@ -87,7 +91,7 @@
 #define PACKAGE_VERSION "0.4.1"
 
 /* Define to 1 if you have the ANSI C header files. */
-/* #undef STDC_HEADERS */
+#define STDC_HEADERS 1
 
 /* Define to 1 if strerror_r returns char *. */
 /* #undef STRERROR_R_CHAR_P */

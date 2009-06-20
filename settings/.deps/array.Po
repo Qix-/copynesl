@@ -3,7 +3,10 @@ array.o array.o: array.c ../config.h /usr/include/stdlib.h \
   /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
   /usr/include/gnu/stubs-32.h \
   /usr/lib/gcc/i686-pc-linux-gnu/4.1.2/include/stddef.h \
-  /usr/include/string.h ../trk_log/trk_log.h array.h
+  /usr/include/string.h /usr/include/bits/string.h \
+  /usr/include/bits/string2.h /usr/include/endian.h \
+  /usr/include/bits/endian.h /usr/include/bits/types.h \
+  /usr/include/bits/typesizes.h ../trk_log/trk_log.h array.h
 
 ../config.h:
 
@@ -22,6 +25,18 @@ array.o array.o: array.c ../config.h /usr/include/stdlib.h \
 /usr/lib/gcc/i686-pc-linux-gnu/4.1.2/include/stddef.h:
 
 /usr/include/string.h:
+
+/usr/include/bits/string.h:
+
+/usr/include/bits/string2.h:
+
+/usr/include/endian.h:
+
+/usr/include/bits/endian.h:
+
+/usr/include/bits/types.h:
+
+/usr/include/bits/typesizes.h:
 
 ../trk_log/trk_log.h:
 

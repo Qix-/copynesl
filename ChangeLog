@@ -1,3 +1,8 @@
+2009-06-19 Bjorn
+	* configure.ac autogen.sh bootstrap.sh:
+		Fixed ability to bootstrap to update build env.  Renamed
+		autogen.sh to bootstrap.sh.
+
 2009-05-07 Bjorn
 	* copynesl/convert.c:
 		begining of format conversion functionality

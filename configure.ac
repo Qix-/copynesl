@@ -1,11 +1,13 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.63])
+AC_PREREQ([2.5])
 AC_INIT([copynesl], [0.4.1], [cradelit@gmail.com])
 AM_INIT_AUTOMAKE([copynesl], [0.4.1])
+LT_INIT()
 AC_CONFIG_SRCDIR([copynesl])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_ARG_WITH(inspect,
 	AS_HELP_STRING([--with-inspect],[Inspect test suite errors]),

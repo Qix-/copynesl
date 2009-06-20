@@ -73,41 +73,42 @@ AUTOMAKE = ${SHELL} /home/crade/svn/copynesl/missing --run automake-1.10
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS =  -I/usr/local/include/copynes
+CFLAGS = -g -O2 -I/usr/local/include/copynes
 CPP = gcc -E
 CPPFLAGS = 
-CXX = g++
-CXXCPP = g++ -E
-CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -g -O2
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
 DSYMUTIL = 
-ECHO = echo
+DUMPBIN = 
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
 EGREP = /bin/grep -E
 EXEEXT = 
-F77 = gfortran
-FFLAGS = -g -O2
+FGREP = /bin/grep -F
 GREP = /bin/grep
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
+LD = /usr/i686-pc-linux-gnu/bin/ld
 LDFLAGS =  -L/usr/local/lib/copynes
 LIBOBJS = 
 LIBS = -lcopynes 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
+LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
 MAKEINFO = ${SHELL} /home/crade/svn/copynesl/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
+NM = /usr/bin/nm -B
 NMEDIT = 
+OBJDUMP = objdump
 OBJEXT = o
+OTOOL = 
+OTOOL64 = 
 PACKAGE = copynesl
 PACKAGE_BUGREPORT = cradelit@gmail.com
 PACKAGE_NAME = copynesl
@@ -126,8 +127,7 @@ abs_srcdir = /home/crade/svn/copynesl/trk_log
 abs_top_builddir = /home/crade/svn/copynesl
 abs_top_srcdir = /home/crade/svn/copynesl
 ac_ct_CC = gcc
-ac_ct_CXX = g++
-ac_ct_F77 = gfortran
+ac_ct_DUMPBIN = 
 am__include = include
 am__leading_dot = .
 am__quote = 
@@ -158,6 +158,7 @@ libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
 localstatedir = ${prefix}/var
+lt_ECHO = echo
 mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
@@ -191,9 +192,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  trk_log/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  trk_log/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  trk_log/Makefile
+	  $(AUTOMAKE) --gnu  trk_log/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

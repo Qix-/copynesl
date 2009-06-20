@@ -1,4 +1,9 @@
-2009-04-28:  Bjorn
+2009-06-19 Bjorn
+	* configure.ac autogen.sh bootstrap.sh:
+		Fixed ability to bootstrap to update build env.  Renamed
+		autogen.sh to bootstrap.sh.
+
+2009-04-28 Bjorn
 	* cartctl/cartctl/unifutils.c, cartctl/cartctl/nes.h:
 		Changed unif to use dynamic memory
 

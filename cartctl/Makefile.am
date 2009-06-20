@@ -1,2 +1,3 @@
 AUTOMAKE_OPTIONS	= foreign
 SUBDIRS=cartctl
+ACLOCAL_AMFLAGS = -I m4

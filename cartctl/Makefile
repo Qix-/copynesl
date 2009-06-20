@@ -14,9 +14,9 @@
 
 
 
-pkgdatadir = $(datadir)/cartcrl
-pkglibdir = $(libdir)/cartcrl
-pkgincludedir = $(includedir)/cartcrl
+pkgdatadir = $(datadir)/cartctl
+pkglibdir = $(libdir)/cartctl
+pkgincludedir = $(includedir)/cartctl
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 install_sh_DATA = $(install_sh) -c -m 644
 install_sh_PROGRAM = $(install_sh) -c
@@ -87,9 +87,10 @@ CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -g -O2
 CYGPATH_W = echo
-DEFS = -DPACKAGE_NAME=\"cartctl\ Library\" -DPACKAGE_TARNAME=\"cartcrl\" -DPACKAGE_VERSION=\"0.02\" -DPACKAGE_STRING=\"cartctl\ Library\ 0.02\" -DPACKAGE_BUGREPORT=\"cradelit@gmail.com\" -DPACKAGE=\"cartcrl\" -DVERSION=\"0.02\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1
+DEFS = -DPACKAGE_NAME=\"cartctl\ Library\" -DPACKAGE_TARNAME=\"cartctl\" -DPACKAGE_VERSION=\"0.0.2\" -DPACKAGE_STRING=\"cartctl\ Library\ 0.0.2\" -DPACKAGE_BUGREPORT=\"cradelit@gmail.com\" -DPACKAGE=\"cartctl\" -DVERSION=\"0.0.2\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DLT_OBJDIR=\".libs/\" -DHAVE_DLFCN_H=1 -DHAVE_DECL_STRERROR_R=1 -DHAVE_STRERROR_R=1 -DHAVE_BZERO=1 -DHAVE_STRCASECMP=1 -DHAVE_GETOPT_LONG=1 -DHAVE_MALLOC=1 -DHAVE_FREE=1
 DEPDIR = .deps
 DSYMUTIL = 
+DUMPBIN = 
 ECHO = echo
 ECHO_C = 
 ECHO_N = -n
@@ -98,12 +99,14 @@ EGREP = /bin/grep -E
 EXEEXT = 
 F77 = gfortran
 FFLAGS = -g -O2
+FGREP = /bin/grep -F
 GREP = /bin/grep
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
+LD = /usr/i686-pc-linux-gnu/bin/ld
 LDFLAGS = 
 LIBOBJS = 
 LIBS = 
@@ -112,27 +115,30 @@ LN_S = ln -s
 LTLIBOBJS = 
 MAKEINFO = ${SHELL} /home/crade/svn/copynesl/cartctl/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
+NM = /usr/bin/nm -B
 NMEDIT = 
+OBJDUMP = objdump
 OBJEXT = o
-PACKAGE = cartcrl
+PACKAGE = cartctl
 PACKAGE_BUGREPORT = cradelit@gmail.com
 PACKAGE_NAME = cartctl Library
-PACKAGE_STRING = cartctl Library 0.02
-PACKAGE_TARNAME = cartcrl
-PACKAGE_VERSION = 0.02
+PACKAGE_STRING = cartctl Library 0.0.2
+PACKAGE_TARNAME = cartctl
+PACKAGE_VERSION = 0.0.2
 PATH_SEPARATOR = :
 RANLIB = ranlib
 SED = /bin/sed
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = strip
-VERSION = 0.02
+VERSION = 0.0.2
 abs_builddir = /home/crade/svn/copynesl/cartctl
 abs_srcdir = /home/crade/svn/copynesl/cartctl
 abs_top_builddir = /home/crade/svn/copynesl/cartctl
 abs_top_srcdir = /home/crade/svn/copynesl/cartctl
 ac_ct_CC = gcc
 ac_ct_CXX = g++
+ac_ct_DUMPBIN = 
 ac_ct_F77 = gfortran
 am__include = include
 am__leading_dot = .
@@ -164,6 +170,7 @@ libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
 localstatedir = ${prefix}/var
+lt_ECHO = echo
 mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
@@ -181,6 +188,7 @@ top_builddir = .
 top_srcdir = .
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = cartctl
+ACLOCAL_AMFLAGS = -I m4
 all: all-recursive
 
 .SUFFIXES:
