@@ -52,6 +52,13 @@ uint8_t* dump_data(copynes_packet_t* packets, int npackets, int type, long size)
 int do_output(copynes_packet_t* packets, int npackets, uint8_t copynes_mirroring_mask, unsigned short has_wram);
 uint8_t copynes_to_ines_mirrmask(uint8_t copynes_mirroring_mask, unsigned short has_battery);
 
+int init_io(void)
+{
+	
+}
+
+
+
 /* read in the input files provided, the output files requested, 
  * and do the conversion, writing the result into the output files.
  */
@@ -295,91 +302,6 @@ get_data_size(copynes_packet_t* packets, long npackets, int packet_type)
 		if (packets[i]->type == packet_type) result_size += packets[i]->size;
 	}
 	return result_size;
-}
-
-/* use the ext to select and set one of the output files.  
- * Leave the others alone.
- */
-int 
-set_one_file(FILE** oprg, FILE** ochr, FILE** owram, FILE** ones, FILE** ounif, FILE* input, const char* ext, int* omapper)
-{
-	int mapper = get_int_setting("mapper");
-	trk_log(TRK_VERBOSE, "ext: %s", ext);
-	if (!strcmp(ext, "prg") || !strcmp(ext, "PRG")) {
-		*oprg = input;
-	} else if (   !strcmp(ext, "chr") || !strcmp(ext, "CHR")) {
-		*ochr = input;
-	} else if (   !strcmp(ext, "wram") || !strcmp(ext, "WRAM") 
-		   || !strcmp(ext, "wrm") || !strcmp(ext, "WRM") 
-		   || !strcmp(ext, "sav") || !strcmp(ext, "SAV")) {
-		*owram = input;
-	} else if (!strcmp(ext, "nes") || !strcmp(ext, "NES")) {
-		*ones = input;
-		*omapper = mapper;
-	} else if (   !strcmp(ext, "unif") || !strcmp(ext, "UNIF") 
-		   || !strcmp(ext, "unf") || !strcmp(ext, "UNF")) {
-		   	trk_log(TRK_VERBOSE, "setting unif");
-			*ounif = input;
-	} else {
-		trk_log(TRK_ERROR, "invalid extension in output file. %s", ext);
-		return -1;
-	}
-	return 0;
-}
-
-int 
-get_dumper_options(FILE** oprg, FILE** ochr, 
-		   FILE** owram, FILE** ones, 
-		   FILE** ounif, int* omapper)
-{
-	FILE* cur;
-	const char* oformat_setting;
-	const char* cur_setting;
-	char* filename;
-	const char* ext;
-
-	trk_log(TRK_VERBOSE, "strset: %s", get_string_setting("output-file"));
-
-	reset_string_setting("output-file");
-
-	oformat_setting = get_string_setting("output-format");
-	if (oformat_setting) {
-		cur_setting = get_string_setting("output-file");
-		if (get_string_setting("output-file")) { /* 2 outputfiles + format == error */
-			trk_log(TRK_ERROR, "Error, found multiple output files when output format specified.");
-			return INVALID_OPTIONS;
-		}
-		
-		if (cur_setting) {
-			cur = fopen(cur_setting, "w+b");
-			if (!cur) {
-				trk_log(TRK_ERROR, "Opening file at %s", cur_setting);
-				return -1;
-			} 
-		} else {
-			cur = stdout;
-		}
-		ext = strstr(cur_setting, ".") + 1;
-		set_one_file(oprg, ochr, owram, ones, ounif, cur, ext, omapper);
-	} else {
-		do {
-			cur_setting = get_string_setting("output-file");
-			trk_log(TRK_VERBOSE, "strset: %s", cur_setting);
-			if (cur_setting) {
-				cur = fopen(cur_setting, "w+b");
-				if (!cur) {
-					trk_log(TRK_ERROR, "opening output file %s", cur_setting);
-					continue;
-				} else {
-					char* ext = strstr(cur_setting, ".") + 1;
-					set_one_file(oprg, ochr, owram, ones, ounif, cur, ext, omapper);
-					trk_log(TRK_VERBOSE, "%d %d %d %d %d", *oprg, *ochr, *owram, *ones, *ounif);
-				}
-			}
-		} while (cur_setting);
-	}
-	return 0;
-
 }
 
 uint8_t* 

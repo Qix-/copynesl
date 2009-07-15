@@ -44,7 +44,7 @@
 /* local prototypes */
 static struct cart_unif_data* add_unif_opts(struct cart_unif_data* unif_chunks);
 int required_for_output(int packet_type);
-int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask, unsigned short* has_wram);
+int read_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask, unsigned short* has_wram);
 long get_data_size(copynes_packet_t* packets, long npackets, int packet_type);
 int set_one_file(FILE** oprg, FILE** ochr, FILE** owram, FILE** ones, FILE** ounif, FILE* input, const char* ext, int* omapper);
 int get_dumper_options(FILE** oprg, FILE** ochr,  FILE** owram, FILE** ones,  FILE** ounif, int* omapper);
@@ -112,7 +112,7 @@ dump_cart(void)
 	if (errorcode) return errorcode;
 
     /* read in the packets */
-       do_input(cn, &packets, &npackets, &copynes_mirroring_mask, &has_battery);
+       read_input(cn, &packets, &npackets, &copynes_mirroring_mask, &has_battery);
     
     /* reading from copynes complete. */
 	do_output(packets, npackets, copynes_mirroring_mask, has_battery);
@@ -159,6 +159,8 @@ copynes_to_ines_mirrmask(uint8_t copynes_mirroring_mask, unsigned short has_batt
 	return ines_mirroring_mask;
 }
 
+
+
 /* Pull data required for the dump from the copynes
  * and store is in opackets.  onpackets represents
  * the number of packets read.
@@ -180,7 +182,7 @@ copynes_to_ines_mirrmask(uint8_t copynes_mirroring_mask, unsigned short has_batt
  *                  from the copynes.
  */
 int 
-do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask, unsigned short* has_wram)
+read_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask, unsigned short* has_wram)
 {
     copynes_packet_t packet = 0;
     copynes_packet_t* packets = NULL;
