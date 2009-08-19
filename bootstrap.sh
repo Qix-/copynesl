@@ -1,5 +1,5 @@
 #! /bin/sh
-libtoolize --force \
+libtoolize --force --copy \
 && aclocal \
 && automake --add-missing \
 && autoconf \
