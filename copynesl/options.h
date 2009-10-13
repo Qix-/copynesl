@@ -23,11 +23,16 @@
 #ifndef COPYNESL_OPTIONS_H
 #define COPYNESL_OPTIONS_H
 
-enum commands {NONE = 0, DUMP_CART, PRINT_VERSION, PLAY_MODE, FORMAT_CONVERT, LIST_PLUGINS };
+enum format_types { FT_NONE = 0, FT_PRG, FT_CHR, FT_WRAM, FT_NES, FT_UNIF };
+enum commands { CMD_NONE = 0, CMD_DUMP_CART, CMD_PRINT_VERSION, CMD_PLAY_MODE, CMD_FORMAT_CONVERT, CMD_LIST_PLUGINS };
 
 int init_options(int argc, char** argv);
 int print_invalid_options(char* program_name);
 void free_options(void);
 enum commands get_command(void);
+enum format_types get_format_type(const char* filename);
+
+int validate_opts(enum commands cmd);
+int required_for_output(int packet_type);
 
 #endif

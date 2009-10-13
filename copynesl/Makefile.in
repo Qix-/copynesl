@@ -34,7 +34,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = copynesl$(EXEEXT)
-@HAVE_LIBCOPYNES_TRUE@am__append_1 = copynes.c dump_cart.c 
+@HAVE_LIBCOPYNES_TRUE@am__append_1 = copynes.c 
 @HAVE_LIBCOPYNES_TRUE@am__append_2 = -lcopynes
 subdir = copynesl
 DIST_COMMON = $(noinst_HEADERS) $(srcdir)/Makefile.am \
@@ -49,12 +49,12 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am__copynesl_SOURCES_DIST = copynesl.c options.c plugins.c copynes.c \
-	dump_cart.c
-@HAVE_LIBCOPYNES_TRUE@am__objects_1 = copynes.$(OBJEXT) \
-@HAVE_LIBCOPYNES_TRUE@	dump_cart.$(OBJEXT)
+am__copynesl_SOURCES_DIST = copynesl.c options.c plugins.c output.c \
+	unif.c copynes.c
+@HAVE_LIBCOPYNES_TRUE@am__objects_1 = copynes.$(OBJEXT)
 am_copynesl_OBJECTS = copynesl.$(OBJEXT) options.$(OBJEXT) \
-	plugins.$(OBJEXT) $(am__objects_1)
+	plugins.$(OBJEXT) output.$(OBJEXT) unif.$(OBJEXT) \
+	$(am__objects_1)
 copynesl_OBJECTS = $(am_copynesl_OBJECTS)
 copynesl_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
@@ -191,8 +191,9 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -g -Wall -pedantic -W -Wno-unused -ansi -DSYSCONFDIR=\"@sysconfdir@\" -DDATAROOTDIR=\"@datarootdir@\"
-copynesl_SOURCES = copynesl.c options.c plugins.c $(am__append_1)
-noinst_HEADERS = options.h plugins.h nes.h errorcodes.h
+copynesl_SOURCES = copynesl.c options.c plugins.c output.c unif.c \
+	$(am__append_1)
+noinst_HEADERS = options.h plugins.h nes.h errorcodes.h output.h unif.h
 LDADD = ../trk_log/libtrk_log.a ../settings/libsettings.a \
 	../cartctl/cartctl/libcartctl.la $(am__append_2)
 INCLUDES = -I@top_srcdir@ -I@top_srcdir@/cartctl
@@ -270,9 +271,10 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/copynes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/copynesl.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dump_cart.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/options.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/output.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plugins.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unif.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

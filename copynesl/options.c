@@ -26,10 +26,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <settings/settings.h>
 #include <trk_log/trk_log.h>
 #include "options.h"
+#include "plugins.h"
 #include "errorcodes.h"
+
+int validate_plugin(void);
+int validate_io_settings(char* setting, enum format_types disallowed_mask);
+enum format_types get_format_type(const char* filename);
 
 int  
 init_options(int argc, char** argv)
@@ -44,7 +50,7 @@ init_options(int argc, char** argv)
 			"  -d, --dump-cart=PLUGIN      Initiate a cartridge dump from the copynes.\n"},
 		{ "play-mode", 0, NULL, 'p', NULL, BOOLEAN_SETTING, NULL, 
 		        "  -p, --play-mode             Put copynes into play mode.\n"},
-		{ "copynes-version", 0, NULL, 'n', NULL, BOOLEAN_SETTING, NULL, 
+		{ "copynes-version", 0, NULL, 'v', NULL, BOOLEAN_SETTING, NULL, 
 		        "  -v, --copynes-version       Print the copynes and bios version.\n"},
 #endif
 		{ "list-plugins", 2, NULL, 'l', NULL, STRING_SETTING, NULL, 
@@ -133,17 +139,140 @@ get_command(void)
 {
 	enum commands cmd = 0;
 	if (get_string_setting("dump-cart")) {
-		cmd = DUMP_CART;
+		cmd = CMD_DUMP_CART;
 	} else if (get_bool_setting("copynes-version")) {
-		cmd = PRINT_VERSION;
+		cmd = CMD_PRINT_VERSION;
 	} else if (get_bool_setting("play-mode")) {
-		cmd = PLAY_MODE;
+		cmd = CMD_PLAY_MODE;
 	} else if (get_bool_setting("convert")) {
-		cmd = FORMAT_CONVERT;
+		cmd = CMD_FORMAT_CONVERT;
 	} else if (get_string_setting("list-plugins")) {
-		cmd = LIST_PLUGINS;
+		cmd = CMD_LIST_PLUGINS;
 	}
 	return cmd;
 }
 
+int
+validate_opts(enum commands cmd)
+{
+	switch (cmd) {
+		case CMD_DUMP_CART:
+			/* plugin and outputfile required.  input not allowed. */
+			if (!(validate_plugin() == 0)) {
+				trk_log(TRK_ERROR, "no valid plugins were found or provided.");
+				return INVALID_OPTIONS;
+			} else if (validate_io_settings("input-file", 0) == 0) {
+				trk_log(TRK_ERROR, "dump-cart option cannot be used with inputs.");
+				return INVALID_OPTIONS;
+			} else if (!(validate_io_settings("output-file", 0) == 0)) {
+				trk_log(TRK_ERROR, "dump-cart option requires at least one output option.");
+				return INVALID_OPTIONS;
+			}
+		break;
+		case CMD_PRINT_VERSION:
+		break;
+		case CMD_PLAY_MODE:
+		break;
+		case CMD_FORMAT_CONVERT:
+		break;
+		case CMD_LIST_PLUGINS:
+		break;
+		case CMD_NONE:
+			return INVALID_OPTIONS;
+	}
+	return 0;
+}
+
+/* XXX TODO INCOMPLETE */
+int 
+required_for_output(int packet_type) 
+{
+	return 1;
+}
+
+int
+validate_plugin(void)
+{
+	const char* plugin_dir = get_string_setting("plugin-dir");
+	const char* clear_plugin = get_string_setting("clear-plugin");
+	const char* requested_plugin = get_string_setting("dump-cart");
+	char* plugin_path;
+	char* clplugin_path;
+	int errorcode = 0;
+
+	if (!plugin_dir || !clear_plugin) {
+		trk_log(TRK_FATAL, "the clear plugin could not be found. ensure that your plugin directory is correct.");
+		return -1;
+	}
+	if (!requested_plugin) {
+		trk_log(TRK_ERROR, "No Plugin Specified.");
+		return INVALID_OPTIONS;
+	}
+
+	clplugin_path = get_plugin_path(plugin_dir, clear_plugin);
+	if (!clplugin_path) {
+		free(clplugin_path);
+		return INVALID_OPTIONS;
+	}
+	trk_log(TRK_DEBUG, "Found %s", clplugin_path);
+	set_setting(STRING_SETTING, "clear-plugin", clplugin_path);
+	free(clplugin_path);
+
+	trk_log(TRK_VERBOSE, "Looking for %s", requested_plugin);
+	/* we need at least a plugin setting and either output format or output file settings. */
+	plugin_path = get_plugin_path(plugin_dir, requested_plugin);
+	if (errorcode || !plugin_path) {
+		trk_log(TRK_ERROR, "Could not find %s at %s. Ensure plugin-dir and clear-plugin settings are correct.", get_string_setting("clear_plugin"), plugin_dir);
+		free(plugin_path);
+		return INVALID_OPTIONS;
+	}
+	trk_log(TRK_DEBUG, "Found %s", plugin_path);
+	set_setting(STRING_SETTING, "dump-plugin", plugin_path);
+	free(plugin_path);
+	return 1;
+}
+
+/* if an input is provided that does not match the disallowed_mask,
+ * returns 1, otherwise, returns 0;
+ */
+int
+validate_io_settings(char* setting, enum format_types disallowed_mask)
+{
+	const char* cur = NULL;
+	reset_string_setting(setting);
+	cur = get_string_setting(setting);
+	while (cur) {
+		if (!(get_format_type(cur) & disallowed_mask)) {
+			return 0;
+		}
+		cur = get_string_setting(setting);
+	}
+	return 1;
+}
+
+enum format_types 
+get_format_type(const char* filename)
+{
+	const char* ext = NULL;
+	ext = strstr(filename, ".") + 1;
+	trk_log(TRK_VERBOSE, "ext: %s", ext);
+	if (!strcmp(ext, "prg") || !strcmp(ext, "PRG")) {
+		return FT_PRG;
+	} else if (   !strcmp(ext, "chr") || !strcmp(ext, "CHR")) {
+		return FT_CHR;
+	} else if (   !strcmp(ext, "wram") || !strcmp(ext, "WRAM") 
+		   || !strcmp(ext, "wrm") || !strcmp(ext, "WRM") 
+		   || !strcmp(ext, "sav") || !strcmp(ext, "SAV")) {
+		return FT_WRAM;
+	} else if (!strcmp(ext, "nes") || !strcmp(ext, "NES")) {
+		return FT_NES;
+	} else if (   !strcmp(ext, "unif") || !strcmp(ext, "UNIF") 
+		   || !strcmp(ext, "unf") || !strcmp(ext, "UNF")) {
+		return FT_UNIF;
+		trk_log(TRK_VERBOSE, "setting unif");
+	} else {
+		trk_log(TRK_ERROR, "invalid extension in output file. %s", ext);
+		return 0;
+	}
+}
 

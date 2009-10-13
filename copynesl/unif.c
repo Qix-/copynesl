@@ -1,5 +1,5 @@
 /*
- * nes.h - Interface with CopyNES hardware.
+ * unif.c - Functions dealing with unif format.
  *
  * Copyright (C) Bjorn Hedin 2009 <cradelit@gmail.com>
  * Copyright (C) David Huseby 2009 <dave@linuxprogrammer.org>
@@ -20,22 +20,19 @@
  * along with copynesl.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdint.h>
+#include <stdio.h>
+#include <cartctl/nes.h>
+#include <settings/settings.h>
 
-/* We use the copynes_packet_t structure internally
- * even if user does not have libcopynes
- * so we need to replace it if they do not have libcopynes.
- */
-#ifndef COPYNESL_COPYNES_H
-#define COPYNESL_COPYNES_H
-#ifdef HAVE_LIBCOPYNES
+struct 
+cart_unif_data* add_unif_opts(struct cart_unif_data* unif_chunks)
+{
+	struct cart_unif_data* result = unif_chunks;
+	const char* boardname = get_string_setting("boardname");
+	if (boardname) {
+		result = cart_unif_add_boardname_chunk(result, boardname);
+	}
+	return 0;
+}
 
-int print_version(void);
-int dump_cart(void);
-int enter_playmode(void);
-int copynes_up(copynes_t cn);
-int run_plugin (copynes_t cn, const char* filepath);
-int packet_to_format_type(int packet_type);
-int format_to_packet_type(int format_type);
-
-#endif
-#endif

@@ -1,3 +1,12 @@
+2009-10-13 Bjorn
+	* configure.ac:
+		Set unstable version 0.5.0
+
+2009-10-13 Bjorn
+	* copynesl/dump_cart.c, copynesl/options.c, copynesl/copynes.c
+	  copynesl/options.h, copynesl/nes.h, copynesl/io_opts.c:
+	  	Restructuring
+
 2009-06-19 Bjorn
 	* configure.ac autogen.sh bootstrap.sh:
 		Fixed ability to bootstrap to update build env.  Renamed
