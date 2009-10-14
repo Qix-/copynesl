@@ -1,451 +1,92 @@
-/*
- * convert.c - convert between rom formats using cartctl.
- *
- * Copyright (C) Bjorn Hedin 2009 <cradelit@gmail.com>
- * Copyright (C) David Huseby 2009 <dave@linuxprogrammer.org>
+
+
+/* rules for format conversion:
+ * do not allow both .nes and .unif input
+ * if there is a .nes or .unif input file, it must be the only source for .prg / .chr data.
+ *  (if user wants to combine prg / chr from nes / other sources, they must use an intermediary step).
  * 
- * This file is part of copynesl.
- *
- * copynesl is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * copynesl is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with copynesl.  If not, see <http://www.gnu.org/licenses/>.
+ *  if not .net or .unif in, any number of prg and / or chr inputs are accepted pgr / chr inputs from copynes are also accepted.
+ * 
+ * 1 and only 1 wram file may be provided as input, either from copynes, or from os.
+ * 
+ * 1 and only 1 wram file may be requested as output, either to copynes, or to os.
+ * if output to copynes is selected, it must be the only output specified.  Input not valid for copynes plugin will be ignored.
+ * 
+ * if output to copynes not specified, output follows extensions.
+ *   prg: write out n-1 inputs 1-1.  The last prg output gets all remaining inputs concatenated together.
+ *   chr: same as prg
+ *   nes: all input concatenated, all input chr concatenated.
+ * 
+ *   unif: each input prg is a seperate prg packet, each input chr is a seperate chr packet.
+ *  
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif /* HAVE_CONFIG_H */
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
-#include <cartctl/nes.h>
-#include <copynes/copynes.h>
-#include <trk_log/trk_log.h>
-#include <settings/settings.h>
-#include "errorcodes.h"
-#include "plugins.h"
-#include "nes.h"
-
-#define MAX_OUTPUT_FORMATS 5
-
-/* local prototypes */
-static struct cart_unif_data* add_unif_opts(struct cart_unif_data* unif_chunks);
-int required_for_output(int packet_type);
-int do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask, unsigned short* has_wram);
-long get_data_size(copynes_packet_t* packets, long npackets, int packet_type);
-int set_one_file(FILE** oprg, FILE** ochr, FILE** owram, FILE** ones, FILE** ounif, FILE* input, const char* ext, int* omapper);
-int get_dumper_options(FILE** oprg, FILE** ochr,  FILE** owram, FILE** ones,  FILE** ounif, int* omapper);
-uint8_t* dump_data(copynes_packet_t* packets, int npackets, int type, long size);
-int do_output(copynes_packet_t* packets, int npackets, uint8_t copynes_mirroring_mask, unsigned short has_wram);
-uint8_t copynes_to_ines_mirrmask(uint8_t copynes_mirroring_mask, unsigned short has_battery);
-
-int init_io(void)
-{
-	
-}
-
-
-
-/* read in the input files provided, the output files requested, 
- * and do the conversion, writing the result into the output files.
- */
 int
-format_convert(void)
+convert(void)
 {
-}
-
-/*
- * prerequisits:
- * NES MUST BE VERIFIED TO BE ON
- * Options required for dumping cart (see man 1 copynesl)
- *  must be verified
- */
-int
-dump_cart(void)
-{
-	const char* plugin_dir = get_string_setting("plugin-dir");
-	const char* clear_plugin = get_string_setting("clear-plugin");
-	const char* requested_plugin = get_string_setting("dump-cart");
-	char* plugin_path;
-	char* clplugin_path;
 	char* filepath = NULL;
 	const char* plugin = NULL; 
 	int errorcode = 0;
 	uint8_t mirroring = 0;
 	int output_formats[MAX_OUTPUT_FORMATS];
-    	copynes_packet_t * packets = NULL;
+    	copynes_packet_t* packets = NULL;
 	int npackets = 0;
 	int i = 0;
 	uint8_t copynes_mirroring_mask;
 	unsigned short has_battery = 0;
+	uint8_t** prg;
+	uint8_t** chr;
+	uint8_t** wram;
 
-	copynes_t cn = NULL;
-
-	if (!plugin_dir || !clear_plugin) return -1;
-	if (!requested_plugin) {
-		trk_log(TRK_ERROR, "No Plugin Specified.");
-		return INVALID_OPTIONS;
-	}
-
-	clplugin_path = get_plugin_path(plugin_dir, clear_plugin);
-	if (!clplugin_path) {
-		free(clplugin_path);
-		return INVALID_OPTIONS;
-	}
-	trk_log(TRK_DEBUG, "Found %s", clplugin_path);
-	set_setting(STRING_SETTING, "clear-plugin", clplugin_path);
-	free(clplugin_path);
-
-	trk_log(TRK_VERBOSE, "Looking for %s", requested_plugin);
-	/* we need at least a plugin setting and either output format or output file settings. */
-	plugin_path = get_plugin_path(plugin_dir, requested_plugin);
-	if (errorcode || !plugin_path) {
-		trk_log(TRK_ERROR, "Could not find %s at %s. Ensure plugin-dir and clear-plugin settings are correct.", get_string_setting("clear_plugin"), plugin_dir);
-		free(plugin_path);
-		return INVALID_OPTIONS;
-	}
-	trk_log(TRK_DEBUG, "Found %s", plugin_path);
-	set_setting(STRING_SETTING, "dump-plugin", plugin_path);
-	free(plugin_path);
+	read_files(&packets, &npackets);
+	write_to_files(packets, npackets);
 	
+	/* cleanup */
+	for(i = 0; i < npackets; i++)
+	{
+        	free(packets[i]->data);
+	        free(packets[i]);
+	}
+	free(packets);
 
-	cn = copynes_new();
-	errorcode = copynes_up(cn);
-	if (errorcode) return errorcode;
-
-    /* read in the packets */
-       do_input(cn, &packets, &npackets, &copynes_mirroring_mask, &has_battery);
-    
-    /* reading from copynes complete. */
-	do_output(packets, npackets, copynes_mirroring_mask, has_battery);
-    /* write out .prg, .chr, and .sav files */
-    
-    /* cleanup */
-    for(i = 0; i < npackets; i++)
-    {
-        free(packets[i]->data);
-        free(packets[i]);
-    }
-    free(packets);
-
-	copynes_free(cn);
-	return errorcode;
 }
 
-/* Begin Functions local to this file */
-
-int 
-required_for_output(int packet_type)
+int read_files(copynes_packet_t** opackets, int* onpackets)
 {
-	char* output_format = NULL;
+	unsigned int nprg = 0;
+	unsigned int nchr = 0;
 
-	if (packet_type == PACKET_PRG_ROM) {
-		
-	}
-	return 1;	
-}
+	copynes_packet_t packet = 0;
+	copynes_packet_t* packets = NULL;
 
-uint8_t 
-copynes_to_ines_mirrmask(uint8_t copynes_mirroring_mask, unsigned short has_battery)
-{
-    	uint8_t ines_mirroring_mask = 0;
-	/* mirroring bit is the same */
-	ines_mirroring_mask |= (copynes_mirroring_mask & 0x01);
-	if (copynes_mirroring_mask & 0x02) {
-		ines_mirroring_mask |= CART_FOUR_SCREEN_VROM;	
-	}
-	if (has_battery) {
-		ines_mirroring_mask |= CART_HAS_BATTERY;
-	}
-	
-	return ines_mirroring_mask;
-}
-
-/* Pull data required for the dump from the copynes
- * and store is in opackets.  onpackets represents
- * the number of packets read.
- * data read by this function: 
- *  mirroring bit, prg, chr, wram
- * data that is not required for the output format
- *
- * Parameters: 
- *   cn - libcopynes connection to copynes
- *   opackets - store the data required for the chosen 
- *              output format
- *   onpackets - the number of packets in opackets
- *   omirrmask - the mirroring mask read from the copynes
- *
- * Options used:
- *   clear-plugin - normally clear.bin.  The plugin used
- *                  to clear the copynes memory.
- *   dump-plugin  - the plugin to use to pull the data
- *                  from the copynes.
- */
-int 
-do_input(copynes_t cn, copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask, unsigned short* has_wram)
-{
-    copynes_packet_t packet = 0;
-    copynes_packet_t* packets = NULL;
-    struct timeval t = { 5L, 0L };
- 
-    const char* clear_plugin = get_string_setting("clear-plugin");
-    const char* dump_plugin = get_string_setting("dump-plugin");
-    uint8_t copynes_mirroring_mask = 0;
-/*    mirroring = 0;
- */
-    int npackets = 0;
-    int errorcode = 0;
-
-    int i = 0;
-
-	*has_wram = 0;
-
-	/* first flush the CopyNES */
-	copynes_flush(cn);
-	
-	trk_log(TRK_DEBUG, "Running %s", clear_plugin);
-	errorcode = run_plugin(cn, clear_plugin);
-	if (errorcode) return errorcode;
-	sleep(1);
-
-
-	trk_log(TRK_DEBUG, "Running %s", dump_plugin);
-	errorcode = run_plugin(cn, dump_plugin);
-	if (errorcode) return errorcode;
-	sleep(3);
-
-	copynes_read(cn, &copynes_mirroring_mask, 1, &t);
+	reset_string_setting("input-file");
+	cur_filename = get_string_setting("input-file");
+	while (cur_filename) {
+		enum format_types format_type = get_format_type(cur_filename);
+		switch (format_type) {
+			case FT_PRG:
+			case FT_CHR:
+			case FT_WRAM:
+				packets = realloc(packets, (npackets + 1) * sizeof(*packet));
+				packets[npackets] = packet;
+				npackets++;
 
 
 
+				
 
-    while(1)
-    {
-        packet = NULL;
-	trk_log(TRK_VERBOSE, "reading packet...");
-        /* read in a packet */
-        if((errorcode = copynes_read_packet (cn, &packet, t)) < 0)
-        {
-	    trk_log(TRK_ERROR, "copynes_read_packet returned: %d. copynes error: %s", errorcode, copynes_error_string(cn));
-            for(i = 0; i < npackets; i++)
-            {
-                free(packets[i]);
-            }
-            free(packets);
-	    if (packet) free (packet);
-            copynes_reset (cn, RESET_COPYMODE);
-            return -1;
-        }
-	trk_log(TRK_VERBOSE, "packet type: %d", packet->type);
-        
-        if(packet->type == PACKET_EOD) {
-	    trk_log(TRK_DEBUG, "PACKET_EOD read");
-	    free (packet);
-            break;
-	}
-        
-        switch(packet->type)
-        {
-            case PACKET_PRG_ROM:
-	    	trk_log(TRK_DEBUG, "PRG %d Kb\n", packet->size / 1024);
-                break;
-            case PACKET_CHR_ROM:
-	    	trk_log(TRK_DEBUG, "CHR %d Kb\n", packet->size / 1024);
-                break;
-            case PACKET_WRAM:
-	    	*has_wram = 1; 
-	    	trk_log(TRK_DEBUG, "SAV %d Kb\n", packet->size / 1024);
-                break;
-        }
-        
-	if (required_for_output(packet->type)) {
-	        /* append the packet to the packet list */
-        	packets = realloc(packets, (npackets + 1) * sizeof(*packet));
-	        packets[npackets] = packet;
-        	npackets++;
-	} else {
-		free (packet);
-	}
-    }
-    
-    trk_log(TRK_DEBUGVERBOSE, "npackets: %d", npackets);
-    *opackets = packets;
-    *onpackets = npackets;
-    *omirrmask = copynes_mirroring_mask;
-    /* reset the CopyNES one last time */
-    copynes_reset (cn, RESET_COPYMODE);
-    return 0;
-}
-
-long 
-get_data_size(copynes_packet_t* packets, long npackets, int packet_type)
-{
-	long result_size = 0;
-	int i = 0;
-
-	trk_log(TRK_DEBUGVERBOSE, "data size: npackets: %d", npackets);
-
-	for(i = 0; i < npackets; i++) {
-		if (packets[i]->type == packet_type) result_size += packets[i]->size;
-	}
-	return result_size;
-}
-
-uint8_t* 
-dump_data(copynes_packet_t* packets, int npackets, int type, long size) 
-{
-	int i = 0;
-	long size_completed = 0;
-	uint8_t* start = NULL;
-	uint8_t* cur = NULL;
-	trk_log(TRK_DEBUGVERBOSE, "dump_data started");
-	start = (uint8_t*)malloc(size * sizeof(uint8_t));
-	cur = start;
-	for (i = 0; i < npackets; i++) {
-		if (packets[i]->type == type) {
-			trk_log(TRK_DEBUGVERBOSE, "dump_data %i type %d size %d", i, packets[i]->type, packets[i]->size);
-			cur = memcpy(cur, packets[i]->data, packets[i]->size);
-			if (!cur) return NULL;
-			cur += packets[i]->size;
 		}
-	}
-	return start;
-}
-
-int 
-do_output(copynes_packet_t* packets, int npackets, uint8_t copynes_mirroring_mask, unsigned short has_wram)
-{
-	uint8_t* prg_data = NULL;
-	uint8_t* chr_data = NULL;
-	uint8_t* wram_data = NULL;
-	int mapper = 0;
-	FILE* prg_outputfile = NULL;
-	FILE* chr_outputfile = NULL;
-	FILE* wram_outputfile = NULL;
-	FILE* nes_outputfile = NULL;
-	FILE* unif_outputfile = NULL;
-
-	long prg_data_size = 0;
-	long chr_data_size = 0;
-	long wram_data_size = 0;
-	int errorcode = 0;
-	struct cart_unif_data* unif_chunks = NULL;
-	uint8_t ines_mirroring_mask = 0;
-
-	errorcode = get_dumper_options(&prg_outputfile, &chr_outputfile, &wram_outputfile, &nes_outputfile, &unif_outputfile, &mapper);
-	trk_log(TRK_VERBOSE, "%d %d %d %d %d mapper: %d", prg_outputfile, chr_outputfile, wram_outputfile, nes_outputfile, unif_outputfile, mapper);
-
-	if (unif_outputfile) {
-		unif_chunks = add_unif_opts(unif_chunks);
-	}
-	if (prg_outputfile || nes_outputfile || unif_outputfile) {
-		prg_data_size = get_data_size(packets, npackets, PACKET_PRG_ROM);
-		if (prg_data_size > 0) {
-			prg_data = dump_data(packets, npackets, PACKET_PRG_ROM, prg_data_size);
-			if (prg_outputfile) {
-				trk_log(TRK_VERBOSE, "Outputting %d k of PRG data ", prg_data_size / 1000);
-				errorcode = fwrite(prg_data, sizeof(uint8_t), prg_data_size, prg_outputfile);
-				if (ferror(prg_outputfile)) {
-					trk_log(TRK_ERROR, "error writing to prg_outputfile. ");
-					clearerr(prg_outputfile);
-				}
-				fclose(prg_outputfile);
-				trk_log(TRK_DEBUGVERBOSE, "done");
-			}
-			if (unif_outputfile) {
-				static int prg_chipcount = 0;
-				trk_log(TRK_VERBOSE, "Creating %d k PRG data unif chunk", prg_data_size / 1000);
-				unif_chunks = cart_unif_add_prg_chunk(unif_chunks, prg_data_size, prg_data, prg_chipcount++);
-			}
+		if (format_type == FT_NES) {
+			/* nes to prg / chr */
+			
 		}
 	}
 
-	if (chr_outputfile || nes_outputfile || unif_outputfile) {
-		chr_data_size = get_data_size(packets, npackets, PACKET_CHR_ROM);
-		if (chr_data_size > 0) {
-			chr_data = dump_data(packets, npackets, PACKET_CHR_ROM, chr_data_size);
-			if (chr_outputfile) { 
-				trk_log(TRK_VERBOSE, "Outputting %d k of CHR data ", chr_data_size / 1000);
-				errorcode = fwrite(chr_data, sizeof(uint8_t), chr_data_size, chr_outputfile);
-				if (ferror(chr_outputfile)) {
-					trk_log(TRK_ERROR, "error writing to chr outputfile. ");
-					clearerr(chr_outputfile);
-				}
-				fclose(chr_outputfile);
-			}
-			if (unif_outputfile) {
-				static int chr_chipcount = 0;
-				trk_log(TRK_VERBOSE, "Creating %d k CHR data unif chunk", chr_data_size / 1000);
-				unif_chunks = cart_unif_add_chr_chunk(unif_chunks, chr_data_size, chr_data, chr_chipcount++);
-			}
-		}
-	}	
+	/* The deal is:
+	 *   all prg files in given order
+	 *   followed by chr in order
+	 *   followed by prg from all nes files in order
+	 *   followed by chr from all nes files in order
+	 *   followed by prg from all unif files
 
-	if (wram_outputfile) {
-		wram_data_size = get_data_size(packets, npackets, PACKET_WRAM);
-		if (wram_data_size > 0) {
-			wram_data = (uint8_t*)malloc(wram_data_size * sizeof(uint8_t));
-			wram_data = dump_data(packets, npackets, PACKET_WRAM, wram_data_size);
-			if (wram_outputfile) {
-				errorcode = fwrite(wram_data, sizeof(uint8_t), wram_data_size, wram_outputfile);
-				if (ferror(wram_outputfile)) {
-					trk_log(TRK_ERROR, "error writing to wram_outputfile. ");
-					clearerr(wram_outputfile);
-				}
-				fclose(wram_outputfile);
-			}
-		}
-	}
-
-	if (nes_outputfile && prg_data_size > 0) {
-		uint8_t ines_mirroring = 0;
-		int mapper_no = (int)get_int_setting("mapper");
-		ines_mirroring = copynes_to_ines_mirrmask(copynes_mirroring_mask, has_wram);
-		trk_log(TRK_DEBUG, "Outputing nes file. mapper %d, mirroring mask %x", mapper, ines_mirroring);
-		cart_make_nes(nes_outputfile, prg_data_size, prg_data, chr_data_size, chr_data, (uint8_t) mapper, (uint8_t)ines_mirroring);
-		 
-		fclose(nes_outputfile);
-	}
-
-	if (unif_outputfile) {
-		errorcode = cart_make_unif(unif_outputfile, unif_chunks);
-		if (errorcode) {
-			trk_log(TRK_ERROR, "error outputing unif file.");
-			clearerr(unif_outputfile);
-			errorcode = 0;
-		}
-		fclose(unif_outputfile);
-	}
-
-	if (prg_data) free(prg_data);
-	if (chr_data) free(chr_data);
-	if (wram_data) free(wram_data);
-
-	trk_log(TRK_DEBUG, "End output");
-	return 0;
-}
-
-
-static struct 
-cart_unif_data* add_unif_opts(struct cart_unif_data* unif_chunks)
-{
-	struct cart_unif_data* result = unif_chunks;
-	const char* boardname = get_string_setting("boardname");
-	if (boardname) {
-		result = cart_unif_add_boardname_chunk(result, boardname);
-	}
-	return 0;
 }

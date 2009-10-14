@@ -1,3 +1,9 @@
+2009-10-13
+	* configure.ac:
+		increased version to 0.2.0
+	* Makefile.am nes.h nesutils.c unifutils.c inesutils.c nesutils.h:
+		Created packet based ines and unif format shifting functions 
+
 2009-06-19 Bjorn
 	* configure.ac autogen.sh bootstrap.sh:
 		Fixed ability to bootstrap to update build env.  Renamed

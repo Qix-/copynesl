@@ -27,15 +27,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <settings/settings.h>
 #include <trk_log/trk_log.h>
+#include <cartctl/nes.h>
 #include "options.h"
 #include "plugins.h"
 #include "errorcodes.h"
 
 int validate_plugin(void);
-int validate_io_settings(char* setting, enum format_types disallowed_mask);
-enum format_types get_format_type(const char* filename);
+int validate_io_settings(char* setting, enum cart_format_type disallowed_mask);
+enum cart_format_type get_format_type(const char* filename);
 
 int  
 init_options(int argc, char** argv)
@@ -229,14 +231,14 @@ validate_plugin(void)
 	trk_log(TRK_DEBUG, "Found %s", plugin_path);
 	set_setting(STRING_SETTING, "dump-plugin", plugin_path);
 	free(plugin_path);
-	return 1;
+	return 0;
 }
 
 /* if an input is provided that does not match the disallowed_mask,
  * returns 1, otherwise, returns 0;
  */
 int
-validate_io_settings(char* setting, enum format_types disallowed_mask)
+validate_io_settings(char* setting, enum cart_format_type disallowed_mask)
 {
 	const char* cur = NULL;
 	reset_string_setting(setting);
@@ -250,7 +252,7 @@ validate_io_settings(char* setting, enum format_types disallowed_mask)
 	return 1;
 }
 
-enum format_types 
+enum cart_format_type
 get_format_type(const char* filename)
 {
 	const char* ext = NULL;

@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "nes.h"
+#include "nesutils.h"
 
 struct cart_unif_data*
 cart_unif_add_chunk(struct cart_unif_data* chunks, char id[4], uint32_t data_size, const uint8_t* data)
@@ -181,3 +182,45 @@ cart_make_unif(FILE* output, struct cart_unif_data* chunks)
 
 	return 0;
 }
+
+int 
+cart_pmake_unif(const char* filename, struct cart_format_data* packets, struct cart_unif_data* options)
+{
+	struct cart_unif_data* unif_chunks = NULL;
+	int errorcode = 0;
+	
+	int packet_type = 0;
+	long prg_size = 0;
+	uint8_t* prg = NULL;
+	long chr_size = 0;
+	uint8_t* chr = NULL;
+	FILE* unif_outputfile = NULL;
+	int prg_chipcount = 0;
+	int chr_chipcount = 0;
+	
+	prg_size = get_data_size(packets, FT_PRG);
+	prg = dump_data(packets, FT_PRG, prg_size);
+	chr_size = get_data_size(packets, FT_CHR);
+	chr = dump_data(packets, FT_CHR, chr_size);
+
+	unif_chunks = options;
+	unif_chunks = cart_unif_add_prg_chunk(unif_chunks, prg_size, prg, prg_chipcount++);
+	unif_chunks = cart_unif_add_chr_chunk(unif_chunks, chr_size, chr, chr_chipcount++);
+
+	/* trk_log(TRK_DEBUG, "Outputing unif file.");
+	 */
+	unif_outputfile = fopen(filename, "w+b");
+	errorcode = cart_make_unif(unif_outputfile, unif_chunks);
+	if (errorcode) {
+		/* trk_log(TRK_ERROR, "error outputing unif file.");
+		 */
+		clearerr(unif_outputfile);
+		errorcode = 0;
+		return -1;
+	}
+	
+	fclose(unif_outputfile);
+	return 0;
+}
+
+

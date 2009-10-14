@@ -51,9 +51,8 @@
 
 #define MAX_OUTPUT_FORMATS 5
 
-int cnes_read(copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask);
+int cnes_read(struct cart_format_data** opackets);
 uint8_t copynes_to_ines_mirrmask(uint8_t copynes_mirroring_mask, unsigned short has_battery);
-unsigned short has_wram(copynes_packet_t* packets, int npackets);
 
 int print_version()
 {
@@ -116,37 +115,19 @@ run_plugin (copynes_t cn, const char* filepath)
 int
 dump_cart(void)
 {
-	char* filepath = NULL;
-	const char* plugin = NULL; 
 	int errorcode = 0;
-	uint8_t mirroring = 0;
-	int output_formats[MAX_OUTPUT_FORMATS];
+	struct cart_format_data* packets = NULL;
+/*
     	copynes_packet_t* packets = NULL;
 	int npackets = 0;
-	int i = 0;
-	uint8_t copynes_mirroring_mask;
-	unsigned short has_battery = 0;
-	uint8_t** prg;
-	uint8_t** chr;
-	uint8_t** wram;
-
-
-
+*/
     	/* read in the packets */
-        cnes_read(&packets, &npackets, &copynes_mirroring_mask);
+        cnes_read(&packets);
     
     	/* reading from copynes complete. */
-	write_to_files(packets, npackets, copynes_mirroring_mask);
+	write_to_files(packets);
     	
-	/* write out .prg, .chr, and .sav files */
-    
-    	/* cleanup */
-	for(i = 0; i < npackets; i++)
-	{
-        	free(packets[i]->data);
-	        free(packets[i]);
-	}
-	free(packets);
+	cart_free_packets(&packets);	
 
 	return errorcode;
 }
@@ -243,12 +224,17 @@ copynes_to_ines_mirrmask(uint8_t copynes_mirroring_mask, unsigned short has_batt
  *                  from the copynes.
  */
 int 
-cnes_read(copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask)
+cnes_read(struct cart_format_data** opackets)
 {
 	copynes_t cn = NULL;
 
-	copynes_packet_t packet = 0;
+/*	copynes_packet_t packet = 0;
 	copynes_packet_t* packets = NULL;
+*/
+	copynes_packet_t cnes_packet = 0;
+
+	struct cart_format_data* cur_packet = NULL;
+	struct cart_format_data* packets = NULL;
 	struct timeval t = { 5L, 0L };
  
 	const char* clear_plugin = get_string_setting("clear-plugin");
@@ -256,7 +242,6 @@ cnes_read(copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask)
 	uint8_t copynes_mirroring_mask = 0;
 	/*    mirroring = 0;
  	*/
-	int npackets = 0;
 	int errorcode = 0;
 
 	int i = 0;
@@ -283,66 +268,68 @@ cnes_read(copynes_packet_t** opackets, int* onpackets, uint8_t* omirrmask)
 
 	while(1)
 	{
-		packet = NULL;
+		cnes_packet = NULL;
 		trk_log(TRK_VERBOSE, "reading packet...");
 		/* read in a packet */
-		if((errorcode = copynes_read_packet (cn, &packet, t)) < 0) {
+		if((errorcode = copynes_read_packet (cn, &cnes_packet, t)) < 0) {
 			trk_log(TRK_ERROR, "copynes_read_packet returned: %d. copynes error: %s", errorcode, copynes_error_string(cn));
-			for(i = 0; i < npackets; i++) {
-				free(packets[i]);
-			}
-			free(packets);
-			if (packet) free (packet);
+			cart_free_packets(&packets);
+			if (cnes_packet) free (cnes_packet);
 			copynes_reset (cn, RESET_COPYMODE);
 			return -1;
 		}
-		trk_log(TRK_VERBOSE, "packet type: %d", packet->type);
+		trk_log(TRK_VERBOSE, "packet type: %d", cnes_packet->type);
         
-		if(packet->type == PACKET_EOD) {
+		if(cnes_packet->type == PACKET_EOD) {
 			trk_log(TRK_DEBUG, "PACKET_EOD read");
-			free (packet);
+			free (cnes_packet);
 			break;
 		}
 	
-		switch(packet->type)
+		switch(cnes_packet->type)
 	        {
 			case PACKET_PRG_ROM:
-				trk_log(TRK_DEBUG, "PRG %d Kb\n", packet->size / 1024);
+				trk_log(TRK_DEBUG, "PRG %d Kb\n", cnes_packet->size / 1024);
 				break;
 			case PACKET_CHR_ROM:
-				trk_log(TRK_DEBUG, "CHR %d Kb\n", packet->size / 1024);
+				trk_log(TRK_DEBUG, "CHR %d Kb\n", cnes_packet->size / 1024);
 				break;
 			case PACKET_WRAM:
-				trk_log(TRK_DEBUG, "SAV %d Kb\n", packet->size / 1024);
+				trk_log(TRK_DEBUG, "SAV %d Kb\n", cnes_packet->size / 1024);
 				break;
 		}
 	
-		if (required_for_output(packet->type)) {
+		if (required_for_output(packet_to_format_type(cnes_packet->type))) {
 			/* append the packet to the packet list */
-			packets = realloc(packets, (npackets + 1) * sizeof(*packet));
-			packets[npackets] = packet;
-			npackets++;
-		} else {
-			free (packet);
+			struct cart_format_data* new_packet = NULL;
+			new_packet = (struct cart_format_data*)malloc(sizeof(struct cart_format_data));
+			new_packet->data = (uint8_t*)malloc(cnes_packet->size * sizeof(uint8_t));
+			new_packet->data = (uint8_t*)memcpy(new_packet->data, cnes_packet->data, cnes_packet->size);
+			new_packet->datasize = cnes_packet->size;
+			new_packet->datatype = packet_to_format_type(cnes_packet->type);
+			new_packet->next = NULL;
+			if (packets == NULL) {
+				packets = new_packet;
+				cur_packet = new_packet;
+			} else {
+				cur_packet->next = new_packet;
+				cur_packet = cur_packet->next;
+			}
 		}
+		free (cnes_packet->data);
+		free (cnes_packet);
 	}
-	trk_log(TRK_DEBUGVERBOSE, "npackets: %d", npackets);
-	if (npackets > 0) {
-		uint8_t inesmirrmask = copynes_to_ines_mirrmask(copynes_mirroring_mask, has_wram(packets, npackets));
-		set_setting(INT_SETTING, "ines_mirrmask", &inesmirrmask);
+	trk_log(TRK_DEBUGVERBOSE, "all packets received.");
+	if (packets != NULL) {
+		int inesmirrmask = copynes_to_ines_mirrmask(copynes_mirroring_mask, cart_has_wram(packets));
+		trk_log(TRK_DEBUG, "INESMIRRMASK setting %d", (uint8_t)inesmirrmask);
+		set_setting(INT_SETTING, "ines_mirrmask", (void*)inesmirrmask);
 	}
 	*opackets = packets;
-	*onpackets = npackets;
-	*omirrmask = copynes_mirroring_mask;
 	/* reset the CopyNES one last time */
 	copynes_reset (cn, RESET_COPYMODE);
 	copynes_free(cn);
 	return 0;
 }
 
-unsigned short
-has_wram(copynes_packet_t* packets, int npackets)
-{
-	return 0;
-}
 

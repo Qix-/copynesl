@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <trk_log/trk_log.h>
+#include <cartctl/nes.h>
 #if HAVE_LIBCOPYNES
 #include <copynes/copynes.h>
 #endif

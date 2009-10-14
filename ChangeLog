@@ -1,8 +1,17 @@
 2009-10-13 Bjorn
 	* configure.ac:
+		Set version 0.5.1
+
+	* copynesl/convert.c copynesl/copynes.c copynesl/copynesl.c
+	  copynesl/options.c copynesl/options.h copynesl/output.c
+	  copynesl/output.h:
+	  	more restructuring, moved some functionality to cartctl
+
+
+2009-10-12 Bjorn
+	* configure.ac:
 		Set unstable version 0.5.0
 
-2009-10-13 Bjorn
 	* copynesl/dump_cart.c, copynesl/options.c, copynesl/copynes.c
 	  copynesl/options.h, copynesl/nes.h, copynesl/io_opts.c:
 	  	Restructuring

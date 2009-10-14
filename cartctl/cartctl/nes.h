@@ -31,6 +31,15 @@
 #define CART_TRAINER 4
 #define CART_FOUR_SCREEN_VROM 8
 
+enum cart_format_type { FT_NONE = 0, FT_PRG, FT_CHR, FT_WRAM, FT_NES, FT_UNIF };
+typedef struct cart_format_data
+{
+	unsigned int datasize;
+	enum cart_format_type datatype; 
+	uint8_t* data;
+	struct cart_format_data* next;
+} cart_format_data_t;
+
 typedef struct cart_unif_data {
 	struct cart_unif_chunk* chunk;
 	struct cart_unif_data* next;
@@ -58,16 +67,27 @@ typedef struct cart_dumperinfo
 	                                   the ROM-dumping means used */
 } cart_dumperinfo_t;
 
+extern int cart_free_packets(struct cart_format_data** packets);
+
+extern unsigned short cart_has_wram(struct cart_format_data* packets);
+
+/* make a raw file (straight data dump of all format_type packets) to the specified file */
+extern int cart_pmake_raw(const char* filename, struct cart_format_data* packets, enum cart_format_type format_type);
+
 /* make a .nes file out of a prg and chr from memory */
 extern int cart_make_nes(FILE* output, long prg_size_in_bytes, uint8_t* prg, long chr_size_in_bytes, uint8_t* chr, uint8_t mapper_no, uint8_t mirroring_mask);
 /* make a .nes file out of a prg file and a chr file */
 extern int cart_fmake_nes(FILE* output, FILE* prg, FILE* chr, uint8_t mapper_no, uint8_t mirroring_mask);
+/* make a nes file out of a cart_format_data* */
+extern int cart_pmake_nes(const char* filename, struct cart_format_data* packets, int mapper_no, uint8_t ines_mirr_mask);
 
 /* split a .nes file into it's peices: prg, chr, mapper number and mirroring mask */
 extern int cart_split_nes(FILE* nesfile, uint8_t** oprg, uint8_t** ochr, uint8_t* omapper, uint8_t* omirroring_mask);
 
 /* make a .unif file out of a group of unif chunks from memory */
-int cart_make_unif(FILE* output, struct cart_unif_data* chunks);
+extern int cart_make_unif(FILE* output, struct cart_unif_data* chunks);
+/* make a unif file out of a cart_format_data* */
+extern int cart_pmake_unif(const char* filename, struct cart_format_data* packets, struct cart_unif_data* options);
 
 /* Functions used to create unif chunks. */
 
