@@ -55,8 +55,8 @@ read_settings()
 	formatstr = get_string_setting("format-string");
 	if (formatstr) {
 		mirroring = (int)parse_mirroring(formatstr);
-		set_setting(INT_SETTING, "ines_mirrmask", (void*)mirroring);	
 	}
+	set_setting(INT_SETTING, "ines_mirrmask", (void*)mirroring);	
 	return 0;
 }
 

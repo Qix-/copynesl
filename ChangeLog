@@ -1,5 +1,9 @@
 2009-10-14 Bjorn
 	* configure.ac:
+		Set version 0.5.6
+	* copynesl/convert.c: 
+		Minor fix to allow default formatstring
+	* configure.ac: 
 		Set version 0.5.5
 	* copynesl/Makefile.am copynesl/Makefile.in copynesl/convert.c 
 	  copynesl/copynesl.c copynesl/options.c copynesl/output.c

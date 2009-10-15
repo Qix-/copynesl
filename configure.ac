@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.5])
-AC_INIT([copynesl], [0.5.5], [cradelit@gmail.com])
-AM_INIT_AUTOMAKE([copynesl], [0.5.5])
+AC_INIT([copynesl], [0.5.6], [cradelit@gmail.com])
+AM_INIT_AUTOMAKE([copynesl], [0.5.6])
 LT_INIT()
 AC_CONFIG_SRCDIR([copynesl])
 AC_CONFIG_HEADERS([config.h])
