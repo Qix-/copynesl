@@ -62,11 +62,15 @@ init_options(int argc, char** argv)
 			"                              output format.  Requires at least 1 --input-file\n"
 			"                              option and either --output-file or\n"
 		        "                              --output-format to be set.\n"},
-		/* settings */
+		/* format options */
 		{ "mapper", 1, NULL, 'm', NULL, INT_SETTING, NULL, 
 		        "  -m, --mapper=MAPPER         Specify the mapper number to use in output ROMS.\n"},
 		{ "boardname", 1, NULL, 'b', NULL, STRING_SETTING, NULL, 
 			"  -b, --boardname=BOARD       Specify the boardname used for unif formats.\n"},
+		{ "format-string", 1, NULL, 'f', NULL, STRING_SETTING, NULL, 
+			"  -b, --formatstring=STR      A specially formated string to specify format\n"
+			"                              options. Example: \"vbt4\" would specify \n"
+			"                              vertical mirroring, battery, trainer, four screen vrom.\n"},
 		{ "input-file", 1, NULL, 'i', NULL, STR_ARRAY_SETTING, NULL, 
 			"  -i, --input-file=FILE       Specify a file to be used as input.  Extensions\n"
 			"                              are used to determine file format, so only\n"
@@ -85,7 +89,7 @@ init_options(int argc, char** argv)
 #endif
 		{ "debug", 0, NULL, 'g', NULL, BOOLEAN_SETTING, NULL,
 			"  -d, --debug                 Print out debugging information.\n"}, 
-		{ "verbose", 0, NULL, 'v', NULL, BOOLEAN_SETTING, NULL,
+		{ "verbose", 0, NULL, 0, NULL, BOOLEAN_SETTING, NULL,
 			"  -d, --debug                 Print out debugging information.\n"}, 
 		{ "help", 0, NULL, 'h', NULL, BOOLEAN_SETTING, NULL, 
 			"  -h, --help                  Print this text and exit.\n"}, 
@@ -176,7 +180,8 @@ validate_opts(enum commands cmd)
 		case CMD_PLAY_MODE:
 		break;
 		case CMD_FORMAT_CONVERT:
-		break;
+			trk_log(TRK_VERBOSE, "FORMAT_CONVERT selected.");
+			break;
 		case CMD_LIST_PLUGINS:
 		break;
 		case CMD_NONE:

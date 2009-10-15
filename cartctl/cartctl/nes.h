@@ -73,6 +73,8 @@ extern unsigned short cart_has_wram(struct cart_format_data* packets);
 
 /* make a raw file (straight data dump of all format_type packets) to the specified file */
 extern int cart_pmake_raw(const char* filename, struct cart_format_data* packets, enum cart_format_type format_type);
+/* add a raw file to packets */
+extern int cart_psplit_raw(const char* filename, struct cart_format_data** packets, enum cart_format_type format_type);
 
 /* make a .nes file out of a prg and chr from memory */
 extern int cart_make_nes(FILE* output, long prg_size_in_bytes, uint8_t* prg, long chr_size_in_bytes, uint8_t* chr, uint8_t mapper_no, uint8_t mirroring_mask);
@@ -83,6 +85,8 @@ extern int cart_pmake_nes(const char* filename, struct cart_format_data* packets
 
 /* split a .nes file into it's peices: prg, chr, mapper number and mirroring mask */
 extern int cart_split_nes(FILE* nesfile, uint8_t** oprg, uint8_t** ochr, uint8_t* omapper, uint8_t* omirroring_mask);
+
+extern int cart_psplit_nes(const char* filename, struct cart_format_data** packets, int* omapper_no, uint8_t* oines_mirr_mask);
 
 /* make a .unif file out of a group of unif chunks from memory */
 extern int cart_make_unif(FILE* output, struct cart_unif_data* chunks);

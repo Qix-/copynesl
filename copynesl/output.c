@@ -68,7 +68,6 @@ write_to_files(struct cart_format_data* packets)
 			case FT_NES:
 				{
 					int ines_mirrmask = get_int_setting("ines_mirrmask");
-					trk_log(TRK_DEBUG, "INESMIRRMASK getting %d", (uint8_t)ines_mirrmask);
 					int mapper_no = (int)get_int_setting("mapper");
 					cart_pmake_nes(cur_filename, packets, mapper_no, (uint8_t)ines_mirrmask);
 				}

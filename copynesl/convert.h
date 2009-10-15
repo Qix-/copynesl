@@ -1,5 +1,5 @@
 /*
- * output.h - Functions related to data output.
+ * convert.h - Functions related to convert command.
  *
  * Copyright (C) Bjorn Hedin 2009 <cradelit@gmail.com>
  * Copyright (C) David Huseby 2009 <dave@linuxprogrammer.org>
@@ -20,9 +20,10 @@
  * along with copynesl.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COPYNESL_OUTPUT_H
-#define COPYNESL_OUTPUT_H
+#ifndef COPYNESL_CONVERT_H
+#define COPYNESL_CONVERT_H
 
-int write_to_files(struct cart_format_data* packets);
+
+int format_convert();
 
 #endif

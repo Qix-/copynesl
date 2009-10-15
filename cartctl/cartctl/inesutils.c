@@ -173,6 +173,89 @@ cart_pmake_nes(const char* filename, struct cart_format_data* packets, int mappe
 	return 0;
 }
 
+/* if you don't need the mapper_no and mirr_mask, just pass in NULL. */
+int 
+cart_psplit_nes(const char* filename, struct cart_format_data** packets, int* omapper_no, uint8_t* oines_mirr_mask)
+{
+
+	long prg_size = 0;
+	uint8_t* prg = NULL;
+	long chr_size = 0;
+	uint8_t* chr = NULL;
+	FILE* nes_outputfile = NULL;
+/*	uint8_t ines_mirroring = 0;
+ */
+/*	int mapper_no = 0;
+ */
+
+	FILE* nesfile = NULL;
+	long data_size = 0;
+	uint8_t* prg_data = NULL;	
+	uint8_t* chr_data = NULL;
+	struct cart_format_data* cur = NULL;
+	long readcount = 0;
+
+
+	struct ines_header header;
+	long prg_size_in_bytes = 0;
+	long chr_size_in_bytes = 0;
+
+	nesfile = fopen(filename, "r+b");
+	if (nesfile == NULL) return -1;
+	
+	fread(&header, sizeof(uint8_t), sizeof(header), nesfile);
+	
+	if (omapper_no != NULL) {
+		*omapper_no = ((header.low_mapper_bits_and_mirroring & 0xF0) >> 4);
+		*omapper_no |= (header.high_mapper_bits & 0xF0);
+	}
+	if (oines_mirr_mask != NULL) {
+		*oines_mirr_mask = (header.low_mapper_bits_and_mirroring & 0x0F);
+	}
+
+	prg_size_in_bytes = header.num_prg_blocks * PRG_BLOCKSIZE;
+	chr_size_in_bytes = header.num_chr_blocks * CHR_BLOCKSIZE;
+	
+	if (*packets == NULL) {
+		*packets =  (struct cart_format_data*)malloc(sizeof(struct cart_format_data));
+		cur = *packets;
+	} else {
+		cur = *packets;
+		while (cur->next) cur = (cur)->next;
+		cur->next = (struct cart_format_data*)malloc(sizeof(struct cart_format_data));
+		cur = cur->next;
+	}
+
+	cur->datasize = prg_size_in_bytes;
+	cur->datatype = FT_PRG;
+	cur->data = (uint8_t*)malloc(prg_size_in_bytes * sizeof(uint8_t));
+	cur->next = NULL;
+	readcount = fread(cur->data, sizeof(uint8_t), prg_size_in_bytes, nesfile);
+
+	if (ferror(nesfile) || readcount < data_size) {
+		clearerr(nesfile);
+		return -1;
+	}
+
+	if (chr_size_in_bytes > 0) {
+		cur->next = (struct cart_format_data*)malloc(sizeof(struct cart_format_data));
+		cur = cur->next;
+		cur->datasize = chr_size_in_bytes;
+		cur->datatype = FT_CHR;
+		cur->data = (uint8_t*)malloc(chr_size_in_bytes * sizeof(uint8_t));
+		cur->next = NULL;
+		readcount = fread(cur->data, sizeof(uint8_t), chr_size_in_bytes, nesfile);
+
+		if (ferror(nesfile) || readcount < data_size) {
+			clearerr(nesfile);
+			return -1;
+		}
+	}
+	
+	fclose(nesfile);
+	return 0;
+}
+
 
 /* *oprg and *ochr will be malloced, and must be fread by caller.
  * omapper and oxmirroring are expected to be able to hold one uint8_t each.

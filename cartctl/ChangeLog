@@ -1,16 +1,24 @@
-2009-10-13
+2009-10-14  bjorn
+	* configure.ac:
+		increased version to 0.3.0
+	* cartctl/inesutils.c cartctl/nes.h cartctl/nesutils.c:
+		added packet based splitting functions cart_psplit_raw
+		and cart_psplit_nes
+
+2009-10-13  bjorn
 	* configure.ac:
 		increased version to 0.2.0
-	* Makefile.am nes.h nesutils.c unifutils.c inesutils.c nesutils.h:
+	* cartctl/Makefile.am cartctl/nes.h cartctl/nesutils.c 
+	  cartctl/unifutils.c cartctl/inesutils.c cartctl/nesutils.h:
 		Created packet based ines and unif format shifting functions 
 
-2009-06-19 Bjorn
+2009-06-19  bjorn
 	* configure.ac autogen.sh bootstrap.sh:
 		Fixed ability to bootstrap to update build env.  Renamed
 		autogen.sh to bootstrap.sh.
 
-2009-04-28 Bjorn
-	* cartctl/cartctl/unifutils.c, cartctl/cartctl/nes.h:
+2009-04-28  bjorn
+	* cartctl/unifutils.c, cartctl/nes.h:
 		Changed unif to use dynamic memory
 
 2009-04-25  bjorn
@@ -25,7 +33,6 @@
 	  	renamed library
 
 2009-03-13  bjorn
-
 	* AUTHORS, ChangeLog, Makefile.am, README, configure.ac: 
 		autotools setup
 	* nesctl.h: 
@@ -36,8 +43,7 @@
 		rewritten, I think a lot clearer.  interface changed slightly.
 
 2009-03-07  bjorn
-
-	* nesutils.c nesutils.h: added nes support.  Two functions
-	  to create a .nes file from prg and chr in memory, and
-	  in file format.
+	* nesutils.c nesutils.h: 
+		added nes support.  Two functions to create a .nes file 
+		from prg and chr in memory, and in file format.
 

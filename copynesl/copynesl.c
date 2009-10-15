@@ -36,6 +36,7 @@
 #endif
 #include "options.h"
 #include "plugins.h"
+#include "convert.h"
 #include "errorcodes.h"
 #include "nes.h"
 
@@ -67,8 +68,8 @@ int main(int argc, char** argv)
 					break;
 #endif
 				case CMD_FORMAT_CONVERT:
-					/* errorcode = format_convert();
-					 */
+					errorcode = format_convert();
+					break;	
 				case CMD_LIST_PLUGINS:
 					errorcode = list_plugins();
 					break;

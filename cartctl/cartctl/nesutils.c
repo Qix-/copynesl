@@ -8,6 +8,7 @@
 #include "nes.h"
 #include "nesutils.h"
 
+long get_filesize(FILE* f);
 
 
 unsigned short
@@ -106,5 +107,71 @@ cart_free_packets(struct cart_format_data** packets)
 	}
 
 	return 0;
+}
+
+/* Dump the data from any file type that requires no manipulation
+ * into the end of packets.
+ */
+int 
+cart_psplit_raw(const char* filename, struct cart_format_data** packets, enum cart_format_type format_type)
+{
+	FILE* inputfile = NULL;
+	long data_size = 0;
+	uint8_t* data_dump = NULL;	
+	struct cart_format_data* cur = NULL;
+	long readcount = 0;
+
+	data_dump = dump_data(*packets, format_type, data_size);
+	inputfile = fopen(filename, "r+b");
+	data_size = get_filesize(inputfile);
+	
+	if (*packets == NULL) {
+		*packets =  (struct cart_format_data*)malloc(sizeof(struct cart_format_data));
+		cur = *packets;
+	} else {
+		cur = *packets;
+		while (cur->next) cur = (cur)->next;
+		cur->next = (struct cart_format_data*)malloc(sizeof(struct cart_format_data));
+		cur = cur->next;
+	}
+
+	(cur)->datasize = data_size;
+	(cur)->datatype = format_type;
+	(cur)->data = (uint8_t*)malloc(data_size * sizeof(uint8_t));
+	(cur)->next = NULL;
+
+	readcount = fread((cur)->data, sizeof(uint8_t), data_size, inputfile);
+
+	if (ferror(inputfile) || readcount < data_size) {
+		clearerr(inputfile);
+		return -1;
+	}
+	fclose(inputfile);
+	return 0;
+}
+
+       	
+long 
+get_filesize(FILE* f)
+{
+	int errorcode = 0;
+	long size;
+	long original_offset = 0;
+
+	if (f)
+	{
+		original_offset = ftell(f);
+		if (original_offset == -1) return -1;
+
+		errorcode = fseek(f, 0, SEEK_END);
+		if (errorcode < 0) return -1;
+
+		size = ftell(f);
+
+		errorcode = fseek(f, 0, original_offset);
+		if (errorcode < 0) return -1;
+		return size;
+	}
+	return -1;
 }
 
