@@ -1,4 +1,6 @@
 2009-10-14  bjorn
+	* cartctl/Makefile.am:
+		fix to include noinst headers.
 	* configure.ac:
 		increased version to 0.3.0
 	* cartctl/inesutils.c cartctl/nes.h cartctl/nesutils.c:
