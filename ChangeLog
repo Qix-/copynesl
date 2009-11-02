@@ -1,3 +1,17 @@
+2009-10-23 Bjorn
+	* copynesl/input.c copynesl/input.h copynesl/Makefile.am
+	  copynesl/copynes.c copynesl/copynesl.c copynesl/nes.h
+	  copynesl/options.c copynesl/options.h copynesl/output.c:
+	  	Added ability to write wram.
+
+2009-10-22 Bjorn
+	* copynesl/plugins.c copynesl/copynes.c copynesl/options.c:
+		Added ability for plugin uservars.  Currently disbabled.
+
+2009-10-15 Bjorn
+	* man/copynesl.1:
+		Update manual for convertion functionality
+
 2009-10-14 Bjorn
 	* configure.ac:
 		Set version 0.5.6

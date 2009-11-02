@@ -53,11 +53,11 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am__copynesl_SOURCES_DIST = copynesl.c options.c plugins.c output.c \
-	unif.c convert.c copynes.c
+	unif.c input.c copynes.c
 @HAVE_LIBCOPYNES_TRUE@am__objects_1 = copynes.$(OBJEXT)
 am_copynesl_OBJECTS = copynesl.$(OBJEXT) options.$(OBJEXT) \
 	plugins.$(OBJEXT) output.$(OBJEXT) unif.$(OBJEXT) \
-	convert.$(OBJEXT) $(am__objects_1)
+	input.$(OBJEXT) $(am__objects_1)
 copynesl_OBJECTS = $(am_copynesl_OBJECTS)
 copynesl_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
@@ -195,8 +195,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -g -Wall -pedantic -W -Wno-unused -ansi -DSYSCONFDIR=\"@sysconfdir@\" -DDATAROOTDIR=\"@datarootdir@\"
 copynesl_SOURCES = copynesl.c options.c plugins.c output.c unif.c \
-	convert.c $(am__append_1)
-noinst_HEADERS = options.h plugins.h nes.h errorcodes.h output.h unif.h convert.h
+	input.c $(am__append_1)
+noinst_HEADERS = options.h plugins.h nes.h errorcodes.h output.h unif.h input.h
 LDADD = ../trk_log/libtrk_log.a ../settings/libsettings.a \
 	../cartctl/cartctl/libcartctl.la $(am__append_2)
 INCLUDES = -I@top_srcdir@ -I@top_srcdir@/cartctl
@@ -272,9 +272,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convert.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/copynes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/copynesl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/input.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/options.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/output.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plugins.Po@am__quote@

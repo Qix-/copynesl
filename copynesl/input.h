@@ -24,6 +24,8 @@
 #define COPYNESL_CONVERT_H
 
 
-int format_convert();
+int format_convert(void);
+int read_settings(void);
+int read_files(struct cart_format_data** opackets);
 
 #endif

@@ -35,7 +35,7 @@
 #include "plugins.h"
 #include "errorcodes.h"
 
-int validate_plugin(void);
+int validate_plugin(const char* requested_plugin);
 int validate_io_settings(char* setting, enum cart_format_type disallowed_mask);
 enum cart_format_type get_format_type(const char* filename);
 
@@ -54,23 +54,31 @@ init_options(int argc, char** argv)
 		        "  -p, --play-mode             Put copynes into play mode.\n"},
 		{ "copynes-version", 0, NULL, 'v', NULL, BOOLEAN_SETTING, NULL, 
 		        "  -v, --copynes-version       Print the copynes and bios version.\n"},
+		{ "write-cart", 1, NULL, 'w', NULL, STRING_SETTING, NULL, 
+			"  -w, --write-cart=PLUGIN     Write to a cartridge (either save data or prg\n"},
 #endif
 		{ "list-plugins", 2, NULL, 'l', NULL, STRING_SETTING, NULL, 
 		        "  -l, --list-plugins=filter   List available plugin details.\n"},
 		{ "convert", 0, NULL, 't', NULL, BOOLEAN_SETTING, NULL, 
 		        "  -t, --convert               Convert the given input files to the provided\n"
 			"                              output format.  Requires at least 1 --input-file\n"
-			"                              option and either --output-file or\n"
-		        "                              --output-format to be set.\n"},
+			"                              option and 1 --output-file to be set.\n"},
 		/* format options */
 		{ "mapper", 1, NULL, 'm', NULL, INT_SETTING, NULL, 
 		        "  -m, --mapper=MAPPER         Specify the mapper number to use in output ROMS.\n"},
 		{ "boardname", 1, NULL, 'b', NULL, STRING_SETTING, NULL, 
 			"  -b, --boardname=BOARD       Specify the boardname used for unif formats.\n"},
 		{ "format-string", 1, NULL, 'f', NULL, STRING_SETTING, NULL, 
-			"  -b, --formatstring=STR      A specially formated string to specify format\n"
+			"  -f, --formatstring=STR      A specially formated string to specify format\n"
 			"                              options. Example: \"vbt4\" would specify \n"
-			"                              vertical mirroring, battery, trainer, four screen vrom.\n"},
+			"                              vertical mirroring, battery, trainer, four screen\n"
+			"                              vrom.\n"},
+		{ "plugin-uservar", 1, NULL, 'u', NULL, STR_ARRAY_SETTING, NULL, 
+			"  -u, --plugin-uservar=STR    A string representing the value to apply to the\n"
+			"                              plugin user variable.  This can be used up to 4\n" 
+			"                              times for variables 1-4 respectively.  copynesl -l\n"
+			"                              pluginname.bin gives a list and description of\n"
+			"                              the variables accepted.\n"},
 		{ "input-file", 1, NULL, 'i', NULL, STR_ARRAY_SETTING, NULL, 
 			"  -i, --input-file=FILE       Specify a file to be used as input.  Extensions\n"
 			"                              are used to determine file format, so only\n"
@@ -154,6 +162,8 @@ get_command(void)
 		cmd = CMD_FORMAT_CONVERT;
 	} else if (get_string_setting("list-plugins")) {
 		cmd = CMD_LIST_PLUGINS;
+	} else if (get_string_setting("write-cart")) {
+		cmd = CMD_WRITE_CART;
 	}
 	return cmd;
 }
@@ -164,7 +174,7 @@ validate_opts(enum commands cmd)
 	switch (cmd) {
 		case CMD_DUMP_CART:
 			/* plugin and outputfile required.  input not allowed. */
-			if (!(validate_plugin() == 0)) {
+			if (!(validate_plugin("dump-cart") == 0)) {
 				trk_log(TRK_ERROR, "no valid plugins were found or provided.");
 				return INVALID_OPTIONS;
 			} else if (validate_io_settings("input-file", 0) == 0) {
@@ -172,6 +182,15 @@ validate_opts(enum commands cmd)
 				return INVALID_OPTIONS;
 			} else if (!(validate_io_settings("output-file", 0) == 0)) {
 				trk_log(TRK_ERROR, "dump-cart option requires at least one output option.");
+				return INVALID_OPTIONS;
+			}
+		break;
+		case CMD_WRITE_CART:
+			if (!(validate_plugin("write-cart") == 0)) {
+				trk_log(TRK_ERROR, "no valid plugins were found or provided.");
+				return INVALID_OPTIONS;
+			} else if (!(validate_io_settings("input-file", 0) == 0)) {
+				trk_log(TRK_ERROR, "dump-cart option cannot be used with inputs.");
 				return INVALID_OPTIONS;
 			}
 		break;
@@ -198,11 +217,11 @@ required_for_output(int packet_type)
 }
 
 int
-validate_plugin(void)
+validate_plugin(const char* requested_plugin_setting)
 {
 	const char* plugin_dir = get_string_setting("plugin-dir");
 	const char* clear_plugin = get_string_setting("clear-plugin");
-	const char* requested_plugin = get_string_setting("dump-cart");
+	const char* requested_plugin = get_string_setting(requested_plugin_setting);
 	char* plugin_path;
 	char* clplugin_path;
 	int errorcode = 0;
@@ -234,7 +253,7 @@ validate_plugin(void)
 		return INVALID_OPTIONS;
 	}
 	trk_log(TRK_DEBUG, "Found %s", plugin_path);
-	set_setting(STRING_SETTING, "dump-plugin", plugin_path);
+	set_setting(STRING_SETTING, requested_plugin_setting, plugin_path);
 	free(plugin_path);
 	return 0;
 }

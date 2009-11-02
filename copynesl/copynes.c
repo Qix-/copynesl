@@ -38,7 +38,7 @@
 #include <stdlib.h>
 
 #if HAVE_LIBCOPYNES
-#include <copynes/copynes.h>
+#include <copynes.h>
 #endif
 #include <cartctl/nes.h>
 #include <settings/settings.h>
@@ -48,10 +48,13 @@
 #include "plugins.h"
 #include "options.h"
 #include "output.h"
+#include "input.h"
 
 #define MAX_OUTPUT_FORMATS 5
 
 int cnes_read(struct cart_format_data** opackets);
+int cnes_write(struct cart_format_data* opackets);
+int set_plugin_uservars(copynes_t cn);
 uint8_t copynes_to_ines_mirrmask(uint8_t copynes_mirroring_mask, unsigned short has_battery);
 
 int print_version()
@@ -122,16 +125,37 @@ dump_cart(void)
 	int npackets = 0;
 */
     	/* read in the packets */
-        cnes_read(&packets);
+        errorcode = cnes_read(&packets);
+	if (errorcode) return errorcode;
     
     	/* reading from copynes complete. */
-	write_to_files(packets);
+	errorcode = write_to_files(packets);
+	if (errorcode) return errorcode;
     	
-	cart_free_packets(&packets);	
+	errorcode = cart_free_packets(&packets);	
+	if (errorcode) return errorcode;
 
 	return errorcode;
 }
 
+int 
+write_cart(void)
+{
+	int errorcode = 0;
+	struct cart_format_data* packets = NULL;
+
+	trk_log(TRK_DEBUGVERBOSE, "readfiles"); 
+	read_files(&packets);
+	/* read_settings();
+	 */
+	trk_log(TRK_DEBUGVERBOSE, "cnes_write"); 
+	cnes_write(packets);
+	trk_log(TRK_DEBUGVERBOSE, "cart_free_pakets");
+	cart_free_packets(&packets);	
+	trk_log(TRK_DEBUGVERBOSE, "exit;");
+
+	return 0;
+}
 
 /* Begin local only functions */
 
@@ -202,6 +226,58 @@ copynes_to_ines_mirrmask(uint8_t copynes_mirroring_mask, unsigned short has_batt
 	return ines_mirroring_mask;
 }
 
+int 
+set_plugin_uservars(copynes_t cn)
+{
+	/* get uservalue */
+	uint8_t enabled[4] = {0,0,0,0};
+	uint8_t value[4] = {0,0,0,0};
+	int i = 0;
+	const char* cur_val;
+	uint32_t value_holder = 0;
+
+	reset_string_setting("plugin-uservar");
+	cur_val = get_string_setting("plugin-uservar");
+	printf("set plugin uservars\n");
+	while (cur_val && i < 4) {
+		printf("cur_val%s\n", cur_val);
+		if (cur_val[0] == '0' && cur_val[1] == 'x') {
+			/* user entered a hex value */
+			const char* hexstr = &cur_val[2];
+			sscanf(hexstr, "%X", (uint32_t*)&value_holder);
+		} else {
+			sscanf(cur_val, "%u", (uint32_t*)&value_holder);
+		}
+		if ( (value_holder > 0xFFFFFF) && (i <= 0) ) {
+			enabled[i] = 1;
+			value[i++] = (uint8_t)(value_holder >> 24);
+		}
+		if ( (value_holder > 0xFFFF) && (i <= 1) ) {
+			enabled[i] = 1;
+			value[i++] = (uint8_t)(value_holder >> 16);
+		} 
+		if ( (value_holder > 0xFF) && (i <= 2) ) {
+			enabled[i] = 1;
+			value[i++] = (uint8_t)(value_holder >> 8);
+		}
+		enabled[i] = 1;
+		value[i++] = (uint8_t)value_holder;
+
+		trk_log(TRK_DEBUGVERBOSE, "Uservars passed: u1:%d u2:%d u3:%d u4:%d \n", 
+			value[0], value[1], value[2], value[3]);
+
+		cur_val = get_string_setting("plugin-uservar");
+	}
+	if (i >= 4 && cur_val) {
+		trk_log(TRK_WARNING, "Too many bytes passed in for plugin uservals!");
+	}
+	if (enabled[0] || enabled[1] || enabled[2] || enabled[3]) {
+		/* copynes_set_uservars(cn, enabled, value);
+		 */
+	}
+	
+	return 0;
+}
 
 /* Pull data required for the dump from the copynes
  * and store is in opackets.  onpackets represents
@@ -238,7 +314,7 @@ cnes_read(struct cart_format_data** opackets)
 	struct timeval t = { 5L, 0L };
  
 	const char* clear_plugin = get_string_setting("clear-plugin");
-	const char* dump_plugin = get_string_setting("dump-plugin");
+	const char* dump_plugin = get_string_setting("dump-cart");
 	uint8_t copynes_mirroring_mask = 0;
 	/*    mirroring = 0;
  	*/
@@ -258,6 +334,9 @@ cnes_read(struct cart_format_data** opackets)
 	if (errorcode) return errorcode;
 	sleep(1);
 
+	set_plugin_uservars(cn);
+	
+
 
 	trk_log(TRK_DEBUG, "Running %s", dump_plugin);
 	errorcode = run_plugin(cn, dump_plugin);
@@ -276,6 +355,7 @@ cnes_read(struct cart_format_data** opackets)
 			cart_free_packets(&packets);
 			if (cnes_packet) free (cnes_packet);
 			copynes_reset (cn, RESET_COPYMODE);
+			copynes_free(cn);
 			return -1;
 		}
 		trk_log(TRK_VERBOSE, "packet type: %d", cnes_packet->type);
@@ -332,4 +412,104 @@ cnes_read(struct cart_format_data** opackets)
 	return 0;
 }
 
+
+
+
+/* Pull data required for the dump from the copynes
+ * and store is in opackets.  onpackets represents
+ * the number of packets read.
+ * data read by this function: 
+ *  mirroring bit, prg, chr, wram
+ * data that is not required for the output format
+ *
+ * Parameters: 
+ *   cn - libcopynes connection to copynes
+ *   opackets - store the data required for the chosen 
+ *              output format
+ *   onpackets - the number of packets in opackets
+ *   omirrmask - the mirroring mask read from the copynes
+ *
+ * Options used:
+ *   clear-plugin - normally clear.bin.  The plugin used
+ *                  to clear the copynes memory.
+ *   dump-plugin  - the plugin to use to pull the data
+ *                  from the copynes.
+ */
+int 
+cnes_write(struct cart_format_data* opackets)
+{
+	copynes_t cn = NULL;
+
+/*	copynes_packet_t packet = 0;
+	copynes_packet_t* packets = NULL;
+*/
+	copynes_packet_t cnes_packet = 0;
+
+	struct cart_format_data* cur_packet = NULL;
+	struct cart_format_data* packets = NULL;
+	struct timeval t = { 5L, 0L };
+	 
+	const char* write_plugin = get_string_setting("write-cart");
+	struct cart_format_data* cur = opackets;
+	/*    mirroring = 0;
+ 	*/
+	int errorcode = 0;
+
+	int i = 0;
+
+	cn = copynes_new();
+	errorcode = copynes_up(cn);
+	if (errorcode) return errorcode;
+
+	/* first flush the CopyNES */
+	copynes_flush(cn);
+
+	/* I don't *think* that writing requires a clear_plugin 
+	 * call (but what do I know) 
+	 *
+	trk_log(TRK_DEBUG, "Running %s", clear_plugin);
+	errorcode = run_plugin(cn, clear_plugin);
+	if (errorcode) return errorcode;
+	sleep(1);
+	*/
+
+	set_plugin_uservars(cn);
+	
+
+	trk_log(TRK_DEBUG, "Running %s", write_plugin);
+	errorcode = run_plugin(cn, write_plugin);
+	if (errorcode) return errorcode;
+	sleep(3);
+	trk_log(TRK_VERBOSE, "writing wram...");
+	while (cur) {
+		uint8_t cmdsize[1] = {0};
+		cmdsize[0] = (uint8_t)((cur->datasize) >> 8);
+		/* write size of data to be sent (shifted 8) */
+		trk_log(TRK_DEBUGVERBOSE, "writing cmdsize: %d", cmdsize[0]);
+		if ((errorcode = copynes_write(cn,cmdsize , sizeof(uint8_t))) < 0) { 
+			trk_log(TRK_ERROR, "copynes_write_packet returned: %d. copynes error: %s", errorcode, copynes_error_string(cn));
+			copynes_reset (cn, RESET_COPYMODE);
+			copynes_free(cn);
+			return errorcode;
+		}
+		
+		trk_log(TRK_DEBUGVERBOSE, "cmdsize written: %x", cmdsize[0]);
+		sleep(1);
+		trk_log(TRK_DEBUGVERBOSE, "writting data: %x", cur->datasize);
+		
+		if ((errorcode = copynes_write(cn,cur->data , cur->datasize)) < 0) { 
+			trk_log(TRK_ERROR, "copynes_write_packet returned: %d. copynes error: %s", errorcode, copynes_error_string(cn));
+			copynes_reset (cn, RESET_COPYMODE);
+			copynes_free(cn);
+			return errorcode;
+		}
+		trk_log(TRK_DEBUGVERBOSE, "data written %d", cur->datasize);
+		sleep(3);
+		cur = cur->next;
+	}
+
+	copynes_reset (cn, RESET_COPYMODE);
+	copynes_free(cn);
+	return 0;
+}
 

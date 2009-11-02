@@ -47,7 +47,7 @@ format_convert(void)
 }
 
 int 
-read_settings()
+read_settings(void)
 {
 	int mapper = 0;
 	const char* formatstr = NULL;
@@ -116,9 +116,6 @@ read_files(struct cart_format_data** opackets)
 					trk_log(TRK_ERROR, "dumping %s failed.", cur_filename);
 				}
 				trk_log(TRK_DEBUG, "data_size: %d", packets->datasize);
-				if (format_type == FT_CHR) {
-					trk_log(TRK_DEBUG, "data_size: %d", packets->next->datasize);
-				}
 				break;
 			case FT_NES:
 				errorcode = cart_psplit_nes(cur_filename, &packets, NULL, NULL);

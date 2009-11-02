@@ -14,7 +14,7 @@ The available software for the CopyNES is limited to Windows platforms, and it i
 
 Requirements:
 -------------
-This software communicates with the copynes through the libcopynes library and libcopynes is required in order to use any copynes specific features.  libcopynes uses the virtual com port drivers from FTDI and is implement using POSIX standards. copynesl is intended to be compatible with all systems for which a VCP driver is available and that comply with POSIX.  If you are attempting to use such a system and are encountering issues, please file a bug report at http://code.google.com/p/copynesl/
+This software communicates with the copynes through the libcopynes library and libcopynes is required in order to use any copynes specific features.  libcopynes uses the virtual com port drivers from FTDI and is implement using POSIX standards. copynesl is intended to be compatible with all systems for which a VCP driver is available and that comply with POSIX.  If you are attempting to use such a system and are encountering issues, please file a bug report at http://bitbucket.org/crade/copynesl/issues/
 
 Instalation Notes:
 ------------------
@@ -29,6 +29,7 @@ Directory Structure:
 The source tree is organized:
 
 	* copynesl: core program
+	* cartctl:  format convertion utilities
 	* settings: handles command line arguments, confile files, and default options
 	* trk_log:  handles logging, tracing, and error message output for command line.
  
@@ -36,9 +37,9 @@ The source tree is organized:
 Contacts:
 ---------
         * The home for copynesl is currently at: 
-            http://code.google.com/p/copynesl/
+	    http://bitbucket.org/crade/copynesl/
         * Bug reports should generally be filed at:
-            http://code.google.com/p/copynesl/issues/list
+	    http://bitbucket.org/crade/copynesl/issues/
         * Feel free to send suggestions, comments, flames, etc to:
             cradelit@gmail.com
 

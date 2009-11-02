@@ -61,6 +61,14 @@ for .nes format output.
 \fB\-b\fR  \fB\-\-boardname=\fR\fIboardname\fR
 Specify the board name used in unif file format.  Almost
 always required for .unif format output.
+.TP
+\fB\-f\fR  \fB\-\-format\-string=\fR\fIformatstring\fR
+Specify a format string to use when creating an ines
+or unif file.  the format string consists of any of the 
+characters 'v','4','b' and 't' in any order.  These specify
+horizontal mirroring, vertical mirroring, four screen vrom,
+battery and trainer repectively. The default string is
+horizontal mirroring and nothing else.
 .IP "-i --input-file=file"
 Specify a file to be used as input.  Extensions are 
 used to determine file format, so only specific 
@@ -69,14 +77,6 @@ extensions are accepted.
 Specify a file to be used as output.  Extensions are
 used to determine file format, so only specific 
 extensions are accepted.
-.IP "-f --output-format=formatstring"
-Specify the output format.  Possible format strings
-are: 
-.B pgr 
-.B chr 
-.B wram 
-.B nes 
-.B unif
 .IP "-D --data-port=device"
 Default: /dev/ttyUSB0
 
@@ -99,12 +99,7 @@ the following structure.
 If one or more output files are
 specified, output will be put into those files.  The 
 format of the output in that case will be based on the
-extension of the output file.  If there are no output 
-files specified, the output will be dumped to stdout.
-The 
-.B --output-format
-option must be specified in this case and
-only one file type can be output this way.
+extension of the output file. 
 
 Valid extentions for input and output files are:
  .pgr

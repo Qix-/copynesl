@@ -33,6 +33,9 @@
 #include <trk_log/trk_log.h>
 #include "errorcodes.h"
 
+char* get_plugin_path(const char* plugin_dir, const char* plugin_setting);
+int show_plugin_info(const char* plugin_path);
+
 /* return 1 if needle is in haystack (case insensitive)
  */
 static int 
@@ -66,6 +69,51 @@ contains(const char* haystack, const char* needle)
 
 }
 
+/* return the number of lines */
+long split_into_lines(char* istr, char*** lines)
+{
+	long len = 0;
+	int max_line_len = 75;
+	int linelen = 0;
+	long linecount = 0;
+	int i = 0;
+	int j = 0;
+	char* str = istr;
+
+
+	len = strlen(str);	
+
+
+	linecount = 1;
+	for (i = 0; i < len; i++) { 
+		if (str[i] == '\r') {
+			str[i] = '\0';
+		}
+		/* seperate into strings by line */
+		if (str[i] == '\n') { 
+			str[i] = '\0';
+			linecount++;
+		}
+	}
+
+	(*lines) = (char**) malloc(sizeof(char*) * linecount);
+	for (i = 0; i < linecount; i++) {
+		(*lines)[i] = (char*)&(str[j]);
+		linelen = strlen((*lines)[i]);
+		trk_log(TRK_DEBUGVERBOSE, "linelen=%d\n", linelen);
+		j += linelen + 1;
+		if (str[j + 1] == '\0') {
+			j++;
+		} 
+		j++;
+		trk_log(TRK_DEBUGVERBOSE, "lines[i]=: %s", (*lines)[i]);
+	}
+
+	trk_log(TRK_DEBUGVERBOSE, "%d", linecount);
+
+	return linecount;
+}
+
 int 
 list_plugins(void)
 {
@@ -86,6 +134,7 @@ list_plugins(void)
 	char* outline = NULL;
 	int printing_section = 0;
 	int header_printed = 0;
+	const char* plugin_path;
 
 	type = get_setting("plugin-dir", &val);
 	if (type == STRING_SETTING) {
@@ -96,6 +145,7 @@ list_plugins(void)
 		return INVALID_OPTIONS;
 	}
 	
+	plugin_path = get_plugin_path(plugin_dir, filter);
 	trk_log(TRK_VERBOSE, "list-plugins filter: %s", filter);
 
 	mappers_dat_path = get_program_filepath("mappers.dat", DATA);
@@ -117,30 +167,22 @@ list_plugins(void)
 
 	buffer = (char*)malloc(mappers_dat_size * sizeof(char*) + 1); /* ensure no overflow by using file size */
 	readcount = fread(buffer, sizeof(char*), mappers_dat_size, mappers_dat);
-	for (i = 0; i < mappers_dat_size; i++) { 
-		/* seperate into strings by line */
-		if (buffer[i] == '\n') { 
-			buffer[i] = '\0';
-			linecount++;
-		}
-	}
-	lines = (char**) malloc(sizeof(char*) * linecount);
-	trk_log(TRK_DEBUGVERBOSE, "linecount %d", linecount);
-	j = 0;
+	buffer[mappers_dat_size] = '\0';
+
+	linecount = split_into_lines(buffer, &lines);
+	trk_log(TRK_DEBUGVERBOSE, "linescount=%d", linecount);
 
 	if (strlen(filter) <= 0) filter = NULL;
 
 	printf ("    boardname                  plugin       mapper  description\n");
 	printf ("    ---------                  ------       ------  -----------\n");
-	for (i = 0; i < linecount; i++) {
-		lines[i] = (char*)&(buffer[j]);
-		linelen = strlen(lines[i]);
-		j += linelen + 1;
+	/* -1 is because file ends with an "end" header we want to skip. */
+	for (i = 0; i < linecount - 1; i++) {
 		if (i > 1) { /* skip first two lines of junk */
 			if (lines[i][0] == '*') { /* header */
 				if (outline) free(outline);
 				header_printed = 0;
-				outline = (char*) malloc(linelen);
+				outline = (char*) malloc(strlen(lines[i]));
 				sscanf(lines[i], "* %*[^ ] %[^\n]", outline);
 				if (!filter || contains(outline, filter)) {
 					printing_section = 1;
@@ -171,10 +213,9 @@ list_plugins(void)
 
 	fclose(mappers_dat);
 
-	/* if plugin_dir is a relative dir,
-	 * start with ./plugin_dir, then ~/.plugin-dir, then /etc/plugin-dir.
-	 */
-	/* XXX TODO - finish list_plugins */
+	show_plugin_info(plugin_path);
+	
+	
 
 	return 0;
 }
@@ -222,4 +263,137 @@ get_plugin_path(const char* plugin_dir, const char* plugin_setting)
 	return NULL;
 }
 
+int printf_hanging_indent(const char* indent, char* str)
+{
+	char** lines = NULL;
+	long linecount = 0;
+	int i = 0;
+	linecount = split_into_lines(str, &lines);
+	trk_log(TRK_DEBUGVERBOSE, "linecount: %d, lines[0] %s", linecount, lines[0]);
+	 printf(lines[0]);
+	 
+	
+	for (i = 1; i < linecount; i++) { 
+		printf("%s%s\n",indent, lines[i]);
+ 
+	}
+	
+	free (lines);
 
+	return 0;
+}
+
+int
+show_plugin_info(const char* plugin_path)
+{
+	typedef struct plugin_header {
+		char description[96];
+		char author[24] ;
+		uint8_t prg_min_max[2];
+		uint8_t chr_min_max[2];
+		uint8_t wram_min_max[2];
+		uint8_t plugin_ver[1];
+		uint8_t flags[1];
+	} plugin_header_t;
+
+	typedef struct uservar_header {
+		/* note, description is actually 14,
+		 * enabled 1, value 1 but enabled and value are
+		 * only used when plugin is running
+		 * and description needs a space for a terminator.
+		 */
+		char description[16];
+	} uservar_header_t;
+
+	enum usrvar_flags {
+		downloading = 0x01,
+		uploading = 0x02,
+		uservar1 = 0x04,
+		uservar2 = 0x08,
+		uservar3 = 0x16,
+		uservar4 = 0x32
+	};
+
+
+	FILE* f = 0;
+	int i;
+	uint8_t* prg = 0;
+	struct plugin_header header;
+	struct uservar_header varhdr;
+
+	if((f = fopen(plugin_path, "rb")) == 0)
+	{
+		return -1;
+	}
+	fread(&header, sizeof(header), 1, f); 
+
+	/* if the string specified was a plugin name
+	 * then print out extra plugin info about that plugin
+	 */
+	if (plugin_path) {
+		int i = 0;
+		int len = 0;
+		len = 16 + strlen(plugin_path);
+		printf("\n");
+		for (i = 0; i < len; i++) printf("-");
+		printf("\n");
+		printf("Plugin info for %s\n", plugin_path);
+		for (i = 0; i < len; i++) printf("-");
+		printf("\n");
+		printf("\n");
+		printf("    description: ");
+		printf_hanging_indent("                 ", header.description);
+	 
+		printf("\n");
+		printf("    author:      %s\n", header.author);
+		printf("    uservars: \n");
+		
+	}
+
+	/* try to open the plugin file */
+
+	/* send the command to store the plugin prg data at 0400h */
+	/*
+	if(copynes_write(cn, CMD_LOAD_PLUGIN, CMD_SIZE(CMD_LOAD_PLUGIN)) != CMD_SIZE(CMD_LOAD_PLUGIN))
+	{
+		fclose(f);
+		cn->err = FAILED_COMMAND_SEND;
+		return -cn->err;
+	}
+	*/
+
+	/* seek to the plugin prg data */
+	fseek(f, -64, SEEK_END);
+
+	fread(&varhdr, sizeof(varhdr), 1, f); 
+	if ((header.flags[0] & uservar1) && (varhdr.description[0] != -1)) {
+		varhdr.description[15] = '\0';
+		printf("       1:        %s\n", varhdr.description);
+	}
+	
+	fread(&varhdr, sizeof(varhdr), 1, f); 
+	if ((header.flags[0] & uservar2) && (varhdr.description[0] != -1)) {
+		varhdr.description[15] = '\0';
+		printf("       2:        %s\n", varhdr.description);
+	}
+
+	fread(&varhdr, sizeof(varhdr), 1, f); 
+	if ((header.flags[0] & uservar3) && (varhdr.description[0] != -1)) {
+		varhdr.description[15] = '\0';
+		printf("       3:        %s\n", varhdr.description);
+	}
+	
+	fread(&varhdr, sizeof(varhdr), 1, f); 
+	if ((header.flags[0] & uservar4) && (varhdr.description[0] != -1)) {
+		varhdr.description[15] = '\0';
+		printf("       4:        %s\n", varhdr.description);
+	}
+	fclose(f);
+	/*
+	prg = calloc(KB(1), sizeof(uint8_t));
+	*/
+	/* read in the plugin prg data */	
+	/*fread(prg, KB(1), sizeof(uint8_t), f);
+	*/
+	return 0;
+}

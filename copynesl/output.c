@@ -38,7 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <copynes/copynes.h>
+#include <copynes.h>
 #include <cartctl/nes.h>
 #include <trk_log/trk_log.h>
 #include <settings/settings.h>

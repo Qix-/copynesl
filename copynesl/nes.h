@@ -31,6 +31,7 @@
 
 int print_version(void);
 int dump_cart(void);
+int write_cart(void);
 int enter_playmode(void);
 int copynes_up(copynes_t cn);
 int run_plugin (copynes_t cn, const char* filepath);

@@ -32,11 +32,11 @@
 #include <trk_log/trk_log.h>
 #include <cartctl/nes.h>
 #if HAVE_LIBCOPYNES
-#include <copynes/copynes.h>
+#include <copynes.h>
 #endif
 #include "options.h"
 #include "plugins.h"
-#include "convert.h"
+#include "input.h"
 #include "errorcodes.h"
 #include "nes.h"
 
@@ -65,6 +65,9 @@ int main(int argc, char** argv)
 				case CMD_PLAY_MODE:
 					errorcode = enter_playmode();
 					if (!errorcode) printf("Playmode successfully entered.\n");
+					break;
+				case CMD_WRITE_CART:
+					errorcode = write_cart();
 					break;
 #endif
 				case CMD_FORMAT_CONVERT:
