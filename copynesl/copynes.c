@@ -272,8 +272,7 @@ set_plugin_uservars(copynes_t cn)
 		trk_log(TRK_WARNING, "Too many bytes passed in for plugin uservals!");
 	}
 	if (enabled[0] || enabled[1] || enabled[2] || enabled[3]) {
-		/* copynes_set_uservars(cn, enabled, value);
-		 */
+		copynes_set_uservars(cn, enabled, value);
 	}
 	
 	return 0;
